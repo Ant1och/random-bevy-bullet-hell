@@ -42,7 +42,11 @@ mkShell rec {
     vulkan-loader
     libxkbcommon
     wayland
+    openssl
+    openssl.dev
+    libz
   ];
+  
   LD_LIBRARY_PATH = lib.makeLibraryPath buildInputs;
   WINIT_UNIX_BACKEND = "wayland";
 }

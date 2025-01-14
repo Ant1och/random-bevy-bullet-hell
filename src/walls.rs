@@ -5,10 +5,10 @@ use bevy_ecs_ldtk::prelude::*;
 
 use bevy_rapier2d::prelude::*;
 
-#[derive(Copy, Clone, Eq, PartialEq, Debug, Default, Component)]
+#[derive(Eq, PartialEq, Debug, Default, Component)]
 pub struct Wall;
 
-#[derive(Clone, Debug, Default, Bundle, LdtkIntCell)]
+#[derive(Debug, Default, Bundle, LdtkIntCell)]
 pub struct WallBundle {
     wall: Wall,
 }
@@ -166,7 +166,8 @@ pub fn spawn_wall_collision(
                                     / 2.,
                             ))
                             .insert(RigidBody::Fixed)
-                            .insert(Friction::new(0.0))
+                            .insert(Friction::new(0.))
+                            .insert(Restitution::new(0.))
                             .insert(Transform::from_xyz(
                                 (wall_rect.left + wall_rect.right + 1) as f32 * grid_size as f32
                                     / 2.,

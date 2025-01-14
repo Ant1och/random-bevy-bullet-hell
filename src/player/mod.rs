@@ -2,27 +2,42 @@ use crate::{
     colliders::ColliderBundle, ground_detection::GroundDetection, shared::move_toward_f32,
 };
 use bevy::prelude::*;
+use bevy_aseprite_ultra::prelude::*;
 use bevy_ecs_ldtk::prelude::*;
 use bevy_rapier2d::prelude::Velocity;
 
-use config::*;
 mod config;
+use config::*;
 
-#[derive(Copy, Clone, PartialEq, Debug, Default, Component)]
+const ANIMATION_SPEED: f32 = 1.15;
+
+// use sprite::
+// mod sprite;
+
+pub struct Animations;
+
+impl Animations {
+    const WALK_R: &str = "walk_right";
+    // There is no left yet...
+    const WALK_L: &str = "walk_right";
+}
+
+#[derive(PartialEq, Debug, Default, Component)]
 pub struct Player;
 
-#[derive(Copy, Clone, Component, Default)]
+#[derive(Component, Default)]
 pub struct JumpState {
     is_jumping: bool,
 }
 
-#[derive(Copy, Clone, Component, Default)]
+#[derive(Component, Default)]
 pub struct LookingDirection(f32);
 
-#[derive(Clone, Default, Bundle, LdtkEntity)]
+#[derive(Default, Bundle, LdtkEntity)]
 pub struct PlayerBundle {
-    #[sprite("reimu_r.png")]
+    // #[sprite("reimu_r.png")]
     pub sprite: Sprite,
+    pub animation: AseSpriteAnimation,
     #[from_entity_instance]
     pub collider_bundle: ColliderBundle,
     pub player: Player,
@@ -38,6 +53,39 @@ pub struct PlayerBundle {
 #[derive(Resource)]
 struct DashTimer(Timer);
 
+fn set_player_sprite(
+    mut player: Query<&mut AseSpriteAnimation, Added<Player>>,
+    server: Res<AssetServer>,
+) {
+    let Ok(mut animation) = player.get_single_mut() else {
+        return;
+    };
+    animation.aseprite = server.load("reimu.aseprite");
+    animation.animation = Animation::default().with_tag("walk_right")
+}
+
+fn player_animation(
+    input: Res<ButtonInput<KeyCode>>,
+    mut player: Query<&mut AseSpriteAnimation, With<Player>>,
+) {
+    let Ok(mut asesprite) = player.get_single_mut() else {
+        // error!("Cannot find Player in App!");
+        return;
+    };
+
+    let direction = direction(&input);
+
+    let new_animation = match direction.x {
+        1. => Animations::WALK_R,
+        -1. => Animations::WALK_L,
+        _ => {
+            return;
+        }
+    };
+
+    asesprite.animation = Animation::tag(new_animation).with_speed(ANIMATION_SPEED);
+}
+
 fn direction(input: &Res<ButtonInput<KeyCode>>) -> Vec2 {
     let up = if input.pressed(KeyCode::KeyW) { 1. } else { 0. };
     let down = if input.pressed(KeyCode::KeyS) { 1. } else { 0. };
@@ -48,6 +96,15 @@ fn direction(input: &Res<ButtonInput<KeyCode>>) -> Vec2 {
 }
 
 fn dash(velocity: &mut Mut<'_, Velocity>, looking_direction: f32, direction: Vec2) {
+    let looking_direction = match looking_direction {
+        1. => 1.,
+        -1. => -1.,
+        _ => {
+            error!("Invalid looking direction!");
+            return;
+        }
+    };
+
     // velocity.linvel.x = 1000. * looking_direction;
     let dash_direction_x = match direction.y {
         0. => looking_direction,
@@ -151,6 +208,7 @@ impl Plugin for PlayerPlugin {
                 PLAYER_DASH_BUFFER,
                 TimerMode::Once,
             )))
+            .add_systems(Update, set_player_sprite)
             .add_systems(
                 Update,
                 (
@@ -158,6 +216,7 @@ impl Plugin for PlayerPlugin {
                     player_gravity,
                     player_dash,
                     player_horizontal_movement,
+                    player_animation,
                 ),
             );
     }

@@ -1,6 +1,7 @@
 use bevy::prelude::*;
+use bevy_aseprite_ultra::AsepriteUltraPlugin;
 use bevy_ecs_ldtk::prelude::*;
-use bevy_rapier2d::prelude::*;
+use bevy_rapier2d::{prelude::*, rapier::prelude::IntegrationParameters};
 
 mod camera;
 mod colliders;
@@ -11,13 +12,30 @@ mod shared;
 mod walls;
 mod world;
 
+fn spawn_context(mut commands: Commands) {
+    let mut context = RapierContextSimulation::default();
+    context.integration_parameters = IntegrationParameters {
+        length_unit: 1000.,
+        contact_damping_ratio: 0.,
+        contact_natural_frequency: 0.,
+        ..default()
+    };
+
+    commands.spawn((Name::new("Rapier Context"), context, DefaultRapierContext));
+}
+
 fn main() {
     App::new()
         .add_plugins(DefaultPlugins.set(ImagePlugin::default_nearest()))
+        .add_plugins(AsepriteUltraPlugin)
         .add_plugins((
             LdtkPlugin,
-            RapierPhysicsPlugin::<NoUserData>::pixels_per_meter(1000.0),
+            RapierPhysicsPlugin::<NoUserData>::with_custom_initialization(
+                RapierPhysicsPlugin::<NoUserData>::pixels_per_meter(1000.),
+                RapierContextInitialization::NoAutomaticRapierContext,
+            ),
         ))
+        .add_systems(PreStartup, spawn_context.before(PhysicsSet::SyncBackend))
         .insert_resource(LevelSelection::Uid(0))
         .insert_resource(LdtkSettings {
             level_spawn_behavior: LevelSpawnBehavior::UseWorldTranslation {

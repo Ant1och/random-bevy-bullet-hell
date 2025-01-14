@@ -1,5 +1,5 @@
 // Use without deltatime
-pub const PLAYER_SPEED: f32 = 200.;
+pub const PLAYER_SPEED: f32 = 160.;
 pub const PLAYER_JUMP_STRENGTH: f32 = 430.;
 pub const PLAYER_DASH_STRENGTH: f32 = 800.;
 

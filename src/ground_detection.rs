@@ -10,7 +10,7 @@ pub struct GroundSensor {
     pub intersecting_ground_entities: HashSet<Entity>,
 }
 
-#[derive(Clone, Default, Component)]
+#[derive(Default, Component)]
 pub struct GroundDetection {
     pub on_ground: bool,
 }
