@@ -1,3 +1,5 @@
+use std::num::NonZero;
+
 use bevy::prelude::*;
 use bevy_aseprite_ultra::AsepriteUltraPlugin;
 use bevy_ecs_ldtk::prelude::*;
@@ -18,6 +20,10 @@ fn spawn_context(mut commands: Commands) {
         length_unit: 1000.,
         contact_damping_ratio: 0.,
         contact_natural_frequency: 0.,
+        normalized_prediction_distance: 0.002,
+        normalized_allowed_linear_error: 0.001,
+        normalized_max_corrective_velocity: 1000.,
+        num_solver_iterations: NonZero::new(1).unwrap(),
         ..default()
     };
 
@@ -48,29 +54,6 @@ fn main() {
         .add_plugins(walls::WallPlugin)
         .add_plugins(ground_detection::GroundDetectionPlugin)
         .add_plugins(player::PlayerPlugin)
-        .add_systems(Update, camera::camera_fit_inside_current_level)
+        .add_plugins(camera::CameraPlugin)
         .run();
 }
-
-// fn setup(mut commands: Commands, asset_server: Res<AssetServer>) {
-//     commands.spawn(Camera2d);
-
-//     commands.spawn(LdtkWorldBundle {
-//         ldtk_handle: asset_server.load("level.ldtk").into(),
-//         ..Default::default()
-//     });
-// }
-
-// #[derive(Default, Component)]
-// struct ComponentA;
-
-// #[derive(Default, Component)]
-// struct ComponentB;
-
-// #[derive(Default, Bundle, LdtkEntity)]
-// pub struct MyBundle {
-//     a: ComponentA,
-//     b: ComponentB,
-//     #[sprite_sheet]
-//     sprite_sheet: Sprite,
-// }

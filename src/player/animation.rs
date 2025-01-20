@@ -1,0 +1,62 @@
+use crate::player::config::animation::*;
+use crate::player::{direction, LookingDirection, Player};
+use bevy::prelude::*;
+use bevy_aseprite_ultra::prelude::*;
+
+pub fn player_animation(
+    input: Res<ButtonInput<KeyCode>>,
+    mut player: Query<(&mut AseSpriteAnimation, &mut Sprite, &LookingDirection), With<Player>>,
+) {
+    let Ok((mut asesprite, mut sprite, looking_direction)) = player.get_single_mut() else {
+        // error!("Cannot find Player in App!");
+        return;
+    };
+    sprite.flip_x = match looking_direction.0 {
+        1. => false,
+        -1. => true,
+        _ => LookingDirection::default().0 <= 0.,
+    };
+    let animation = match asesprite.animation.tag.clone() {
+        Some(val) => val,
+        None => DEFAULT.to_string(),
+    };
+    let direction = direction(&input);
+
+    let new_animation = match direction.x {
+        0. => STAND,
+        _ => WALK,
+    };
+
+    if animation != new_animation {
+        asesprite.animation = Animation::tag(new_animation).with_speed(ANIMATION_SPEED);
+    }
+}
+
+pub fn set_player_sprite(
+    mut player: Query<&mut AseSpriteAnimation, Added<Player>>,
+    server: Res<AssetServer>,
+) {
+    let Ok(mut animation) = player.get_single_mut() else {
+        return;
+    };
+
+    animation.aseprite = server.load("reimu.aseprite");
+    animation.animation = Animation::default().with_tag(DEFAULT);
+}
+
+// fn events(mut events: EventReader<AnimationEvents>, mut cmd: Commands) {
+//     for event in events.read() {
+//         match event {
+//             AnimationEvents::Finished(entity) => cmd.entity(*entity).despawn_recursive(),
+//             AnimationEvents::LoopCycleFinished(_entity) => (),
+//         };
+//     }
+// }
+//
+pub struct AnimationPlugin;
+
+impl Plugin for AnimationPlugin {
+    fn build(&self, app: &mut App) {
+        app.add_systems(Update, (player_animation, set_player_sprite));
+    }
+}
