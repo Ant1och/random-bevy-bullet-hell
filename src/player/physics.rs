@@ -5,6 +5,7 @@ use crate::{
 };
 use bevy::prelude::*;
 use bevy_rapier2d::prelude::Velocity;
+use bevy_rapier2d::prelude::*;
 
 use crate::player::config::physics::*;
 
@@ -18,7 +19,6 @@ fn dash(velocity: &mut Mut<'_, Velocity>, looking_direction: f32, direction: Vec
         }
     };
 
-    // velocity.linvel.x = 1000. * looking_direction;
     let dash_direction_x = match direction.y {
         0. => looking_direction,
         _ => direction.x,
@@ -34,7 +34,7 @@ fn dash(velocity: &mut Mut<'_, Velocity>, looking_direction: f32, direction: Vec
 }
 
 fn player_dash(
-    mut query: Query<
+    mut player: Query<
         (
             &LookingDirection,
             &mut Velocity,
@@ -48,78 +48,113 @@ fn player_dash(
     time: Res<Time>,
 ) {
     let delta = time.delta_secs_f64();
+    let Ok((looking_direction, mut velocity, mut dash_state, ground_detection)) =
+        player.get_single_mut()
+    else {
+        return;
+    };
 
-    for (looking_direction, mut velocity, mut dash_state, ground_detection) in &mut query {
-        if input.just_pressed(KeyCode::ShiftLeft) {
-            dash(&mut velocity, looking_direction.0, direction(&input));
+    if input.just_pressed(KeyCode::ShiftLeft) {
+        dash(&mut velocity, looking_direction.0, direction(&input));
 
-            dash_timer.0.reset();
-            dash_state.is_dashing = true;
-        }
+        dash_timer.0.reset();
+        dash_state.is_dashing = true;
+    }
 
-        if ground_detection.on_ground && !input.pressed(KeyCode::ShiftLeft) {
-            dash_state.is_dashing = false;
-        }
+    if ground_detection.on_ground {
+        //&& !input.just_pressed(KeyCode::ShiftLeft) {
+        dash_state.is_dashing = false;
+    }
 
-        if dash_state.is_dashing && velocity.linvel.y > 0. {
-            velocity.linvel.y = move_toward_f32(velocity.linvel.y, 0., PLAYER_DECELLERATION * delta)
-        }
+    if dash_state.is_dashing && velocity.linvel.y > 0. {
+        velocity.linvel.y = move_toward_f32(velocity.linvel.y, 0., PLAYER_DECELLERATION * delta)
     }
 }
 
 fn player_gravity(
-    mut query: Query<&mut Velocity, With<Player>>,
+    mut player: Query<&mut Velocity, With<Player>>,
     time: Res<Time>,
     mut dash_timer: ResMut<DashTimer>,
 ) {
-    dash_timer.0.tick(time.delta());
+    let delta = time.delta_secs_f64();
+    let Ok(mut velocity) = player.get_single_mut() else {
+        return;
+    };
 
-    for mut velocity in &mut query {
-        let delta = time.delta().as_secs_f64();
-
-        if dash_timer.0.finished() {
-            let gravity = (PLAYER_GRAVITY * delta) as f32;
-            velocity.linvel.y -= gravity;
-        }
+    if dash_timer.0.tick(time.delta()).finished() {
+        velocity.linvel.y -= (PLAYER_GRAVITY * delta) as f32;
     }
 }
 
 fn player_jump(
-    mut query: Query<(&mut Velocity, &GroundDetection), With<Player>>,
+    mut player: Query<(&mut Velocity, &GroundDetection), With<Player>>,
     input: Res<ButtonInput<KeyCode>>,
 ) {
-    for (mut velocity, ground_detection) in &mut query {
-        if input.just_pressed(KeyCode::Space) && ground_detection.on_ground {
-            velocity.linvel.y = PLAYER_JUMP_STRENGTH;
-        }
-        // println!("{}", jump_state.is_jumping);
+    let Ok((mut velocity, ground_detection)) = player.get_single_mut() else {
+        return;
+    };
+
+    if input.pressed(KeyCode::Space) && ground_detection.on_ground {
+        velocity.linvel.y = PLAYER_JUMP_STRENGTH;
     }
 }
 
 fn player_horizontal_movement(
-    mut query: Query<(&mut Velocity, &mut LookingDirection), With<Player>>,
+    mut player: Query<&mut Velocity, With<Player>>,
     time: Res<Time>,
     input: Res<ButtonInput<KeyCode>>,
 ) {
     let delta = time.delta().as_secs_f64();
+    let direction = direction(&input);
+    let new_vel_x = direction.x * PLAYER_SPEED;
+    let Ok(mut velocity) = player.get_single_mut() else {
+        return;
+    };
 
-    let right = if input.pressed(KeyCode::KeyD) { 1. } else { 0. };
-    let left = if input.pressed(KeyCode::KeyA) { 1. } else { 0. };
+    velocity.linvel.x = match direction.x {
+        0. => move_toward_f32(velocity.linvel.x, new_vel_x, PLAYER_DECELLERATION * delta),
+        _ => move_toward_f32(velocity.linvel.x, new_vel_x, PLAYER_ACELLERATION * delta),
+    };
+}
 
-    let new_vel_x = (right - left) * PLAYER_SPEED;
+fn player_looking_direction(
+    mut player: Query<&mut LookingDirection, With<Player>>,
+    input: Res<ButtonInput<KeyCode>>,
+) {
+    let direction = direction(&input);
 
-    for (mut velocity, mut looking_direction) in &mut query {
-        velocity.linvel.x = match direction(&input).x {
-            0. => move_toward_f32(velocity.linvel.x, new_vel_x, PLAYER_DECELLERATION * delta),
-            _ => move_toward_f32(velocity.linvel.x, new_vel_x, PLAYER_ACELLERATION * delta),
-        };
+    let Ok(mut looking_direction) = player.get_single_mut() else {
+        return;
+    };
 
-        if right - left != 0. {
-            looking_direction.0 = right - left;
-        }
+    if direction.x != 0. {
+        looking_direction.0 = direction.x;
     }
 }
 
+fn player_autostep(
+    ground_detection: Query<&GroundDetection, With<Player>>,
+    mut controller: Query<&mut KinematicCharacterController>,
+) {
+    let Ok(mut controller) = controller.get_single_mut() else {
+        return;
+    };
+    let Ok(ground_detection) = ground_detection.get_single() else {
+        return;
+    };
+
+    if ground_detection.on_ground {
+        controller.translation = Some(Vec2::new(0., PLAYER_AUTOSTEP_AMOUNT));
+    }
+}
+fn read_result_system(controllers: Query<(Entity, &KinematicCharacterControllerOutput)>) {
+    for (entity, output) in controllers.iter() {
+        println!(
+            "Entity {:?} moved by {:?} and touches the ground: {:?}",
+            entity, output.effective_translation, output.grounded
+        );
+    }
+}
 pub struct PhysicsPlugin;
 
 impl Plugin for PhysicsPlugin {
@@ -135,6 +170,9 @@ impl Plugin for PhysicsPlugin {
                 player_gravity,
                 player_dash,
                 player_horizontal_movement,
+                player_looking_direction,
+                player_autostep,
+                read_result_system,
             ),
         );
     }

@@ -23,7 +23,7 @@ fn spawn_context(mut commands: Commands) {
         normalized_prediction_distance: 0.002,
         normalized_allowed_linear_error: 0.001,
         normalized_max_corrective_velocity: 1000.,
-        num_solver_iterations: NonZero::new(1).unwrap(),
+        num_solver_iterations: NonZero::new(4).unwrap(),
         ..default()
     };
 

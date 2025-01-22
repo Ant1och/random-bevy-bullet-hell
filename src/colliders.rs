@@ -15,6 +15,8 @@ pub struct ColliderBundle {
     pub gravity_scale: GravityScale,
     pub friction: Friction,
     pub density: ColliderMassProperties,
+    pub collision_types: ActiveCollisionTypes,
+    pub character_controller: KinematicCharacterController,
 }
 
 impl From<&EntityInstance> for ColliderBundle {
@@ -33,9 +35,17 @@ impl From<&EntityInstance> for ColliderBundle {
                     coefficient: 0.,
                     combine_rule: CoefficientCombineRule::Min,
                 },
+                character_controller: KinematicCharacterController {
+                    // The character offset is set to 0.01.
+                    offset: CharacterLength::Absolute(0.0),
+                    ..default()
+                },
                 gravity_scale: GravityScale(0.),
                 rotation_constraints,
                 density: ColliderMassProperties::Mass(0.),
+                // collision_types: (ActiveCollisionTypes::default()
+                //     | ActiveCollisionTypes::KINEMATIC_STATIC
+                //     | ActiveCollisionTypes::KINEMATIC_KINEMATIC),
                 ..Default::default()
             },
             _ => ColliderBundle::default(),

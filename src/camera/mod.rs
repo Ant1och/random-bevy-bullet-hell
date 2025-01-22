@@ -86,9 +86,9 @@ fn camera_move_to_target(
     transform.translation = move_toward_exp_vec2(
         transform.translation.truncate(),
         target.0,
-        0.02,
-        0.5,
-        delta * CAMERA_SPEED,
+        CAMERA_PANNING,
+        CAMERA_MIN_SPEED,
+        delta * CAMERA_BASE_SPEED,
     )
     .extend(0.);
 }
