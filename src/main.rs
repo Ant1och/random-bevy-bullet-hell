@@ -3,8 +3,10 @@ use std::num::NonZero;
 use bevy::prelude::*;
 use bevy_aseprite_ultra::AsepriteUltraPlugin;
 use bevy_ecs_ldtk::prelude::*;
+use bevy_inspector_egui::quick::WorldInspectorPlugin;
 use bevy_rapier2d::{prelude::*, rapier::prelude::IntegrationParameters};
 
+mod bullet;
 mod camera;
 mod colliders;
 mod config;
@@ -54,6 +56,8 @@ fn main() {
         .add_plugins(walls::WallPlugin)
         .add_plugins(ground_detection::GroundDetectionPlugin)
         .add_plugins(player::PlayerPlugin)
+        .add_plugins(bullet::BulletPlugin)
         .add_plugins(camera::CameraPlugin)
+        .add_plugins(WorldInspectorPlugin::new())
         .run();
 }

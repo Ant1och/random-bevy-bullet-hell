@@ -1,1 +1,1 @@
-pub const WORLD_GRAVITY: f32 = -1700.;
+pub const WORLD_GRAVITY: f32 = 0.; //-1700.;

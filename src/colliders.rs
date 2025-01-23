@@ -16,13 +16,41 @@ pub struct ColliderBundle {
     pub friction: Friction,
     pub density: ColliderMassProperties,
     pub collision_types: ActiveCollisionTypes,
-    pub character_controller: KinematicCharacterController,
+}
+
+#[derive(Default, Bundle, LdtkIntCell)]
+pub struct SensorBundle {
+    pub collider: Collider,
+    pub rigid_body: RigidBody,
+    pub velocity: Velocity,
+    pub rotation_constraints: LockedAxes,
+    pub active_events: ActiveEvents,
+    pub sensor: Sensor,
+}
+
+impl From<&EntityInstance> for SensorBundle {
+    fn from(entity_instance: &EntityInstance) -> SensorBundle {
+        let rotation_constraints = LockedAxes::ROTATION_LOCKED;
+        match (
+            entity_instance.identifier.as_ref(),
+            entity_instance.width as f32,
+            entity_instance.height as f32,
+        ) {
+            ("Bullet", width, height) => SensorBundle {
+                collider: Collider::cuboid(width / 2., height / 2.),
+                rigid_body: RigidBody::KinematicVelocityBased,
+                rotation_constraints,
+                active_events: ActiveEvents::COLLISION_EVENTS,
+                ..Default::default()
+            },
+            _ => SensorBundle::default(),
+        }
+    }
 }
 
 impl From<&EntityInstance> for ColliderBundle {
     fn from(entity_instance: &EntityInstance) -> ColliderBundle {
         let rotation_constraints = LockedAxes::ROTATION_LOCKED;
-
         match entity_instance.identifier.as_ref() {
             "Player" => ColliderBundle {
                 collider: Collider::cuboid(PLAYER_WIDTH / 2., PLAYER_HEIGHT / 2.),
@@ -35,17 +63,9 @@ impl From<&EntityInstance> for ColliderBundle {
                     coefficient: 0.,
                     combine_rule: CoefficientCombineRule::Min,
                 },
-                character_controller: KinematicCharacterController {
-                    // The character offset is set to 0.01.
-                    offset: CharacterLength::Absolute(0.0),
-                    ..default()
-                },
                 gravity_scale: GravityScale(0.),
                 rotation_constraints,
                 density: ColliderMassProperties::Mass(0.),
-                // collision_types: (ActiveCollisionTypes::default()
-                //     | ActiveCollisionTypes::KINEMATIC_STATIC
-                //     | ActiveCollisionTypes::KINEMATIC_KINEMATIC),
                 ..Default::default()
             },
             _ => ColliderBundle::default(),
