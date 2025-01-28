@@ -61,7 +61,7 @@ fn player_dash(
         dash_state.is_dashing = true;
     }
 
-    if ground_detection.on_ground {
+    if ground_detection.just_grounded {
         //&& !input.just_pressed(KeyCode::ShiftLeft) {
         dash_state.is_dashing = false;
     }
@@ -94,7 +94,7 @@ fn player_jump(
         return;
     };
 
-    if input.pressed(KeyCode::Space) && ground_detection.on_ground {
+    if input.pressed(KeyCode::Space) && ground_detection.grounded {
         velocity.linvel.y = PLAYER_JUMP_STRENGTH;
     }
 }
@@ -143,14 +143,14 @@ fn player_autostep(
         return;
     };
 
-    if ground_detection.on_ground {
+    if ground_detection.grounded {
         controller.translation = Some(Vec2::new(0., PLAYER_AUTOSTEP_AMOUNT));
     }
 }
 
-pub struct PhysicsPlugin;
+pub struct PlayerPhysicsPlugin;
 
-impl Plugin for PhysicsPlugin {
+impl Plugin for PlayerPhysicsPlugin {
     fn build(&self, app: &mut App) {
         app.insert_resource(DashTimer(Timer::from_seconds(
             PLAYER_DASH_BUFFER,
@@ -160,8 +160,7 @@ impl Plugin for PhysicsPlugin {
             Update,
             (
                 player_jump,
-                player_gravity,
-                player_dash,
+                (player_dash, player_gravity).chain(),
                 player_horizontal_movement,
                 player_looking_direction,
                 player_autostep,

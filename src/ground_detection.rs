@@ -1,8 +1,10 @@
-use std::collections::HashSet;
+use std::{collections::HashSet, time::Duration};
 
 use bevy::prelude::*;
 
 use bevy_rapier2d::prelude::*;
+
+const JUST_GROUNDED_BUFFER: f64 = 0.008;
 
 #[derive(Component)]
 pub struct GroundSensor {
@@ -12,7 +14,9 @@ pub struct GroundSensor {
 
 #[derive(Default, Component)]
 pub struct GroundDetection {
-    pub on_ground: bool,
+    pub grounded: bool,
+    pub just_grounded: bool,
+    pub just_grounded_timer: Timer,
 }
 
 pub fn spawn_ground_sensor(
@@ -80,24 +84,50 @@ pub fn ground_detection(
     }
 }
 
-pub fn update_on_ground(
+pub fn setup_ground_detection(
+    mut ground_detectors: Query<&mut GroundDetection, Added<GroundDetection>>,
+) {
+    let duration = Duration::from_secs_f64(JUST_GROUNDED_BUFFER);
+    for mut ground_detection in &mut ground_detectors {
+        ground_detection
+            .just_grounded_timer
+            .set_mode(TimerMode::Once);
+        ground_detection.just_grounded_timer.set_duration(duration);
+    }
+}
+
+pub fn update_grounded(
     mut ground_detectors: Query<&mut GroundDetection>,
     ground_sensors: Query<&GroundSensor, Changed<GroundSensor>>,
 ) {
     for sensor in &ground_sensors {
         if let Ok(mut ground_detection) = ground_detectors.get_mut(sensor.ground_detection_entity) {
-            ground_detection.on_ground = !sensor.intersecting_ground_entities.is_empty();
+            ground_detection.grounded = !sensor.intersecting_ground_entities.is_empty();
         }
     }
 }
 
-/// Handles platformer-specific physics operations, specifically ground detection.
+pub fn update_just_grounded(mut ground_detectors: Query<&mut GroundDetection>, time: Res<Time>) {
+    let delta = time.delta();
+    for mut ground_detection in &mut ground_detectors {
+        // println!("{:?}", ground_detection.just_grounded_timer);
+        if ground_detection.grounded {
+            ground_detection.just_grounded =
+                !ground_detection.just_grounded_timer.tick(delta).finished();
+        } else {
+            ground_detection.just_grounded_timer.reset();
+        }
+    }
+}
+
 pub struct GroundDetectionPlugin;
 
 impl Plugin for GroundDetectionPlugin {
     fn build(&self, app: &mut App) {
-        app.add_systems(Update, spawn_ground_sensor)
+        app.add_systems(Update, setup_ground_detection)
+            .add_systems(Update, spawn_ground_sensor)
             .add_systems(Update, ground_detection)
-            .add_systems(Update, update_on_ground);
+            .add_systems(Update, update_grounded)
+            .add_systems(Update, update_just_grounded);
     }
 }

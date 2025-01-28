@@ -7,10 +7,10 @@ use bevy_rapier2d::prelude::KinematicCharacterController;
 pub mod config;
 
 mod animation;
-use animation::AnimationPlugin;
+use animation::PlayerAnimationPlugin;
 
 mod physics;
-use physics::PhysicsPlugin;
+use physics::PlayerPhysicsPlugin;
 
 #[derive(PartialEq, Debug, Default, Component)]
 pub struct Player;
@@ -103,7 +103,7 @@ impl Plugin for PlayerPlugin {
             )))
             .add_systems(Update, set_player_default_stats)
             .add_systems(Update, player_invincibility_timer)
-            .add_plugins(PhysicsPlugin)
-            .add_plugins(AnimationPlugin);
+            .add_plugins(PlayerPhysicsPlugin)
+            .add_plugins(PlayerAnimationPlugin);
     }
 }

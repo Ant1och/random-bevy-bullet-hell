@@ -53,9 +53,9 @@ pub fn set_player_sprite(
 //     }
 // }
 //
-pub struct AnimationPlugin;
+pub struct PlayerAnimationPlugin;
 
-impl Plugin for AnimationPlugin {
+impl Plugin for PlayerAnimationPlugin {
     fn build(&self, app: &mut App) {
         app.add_systems(Update, (player_animation, set_player_sprite));
     }

@@ -1,30 +1,22 @@
-use crate::bullet::Bullet;
-use crate::player::config::animation::*;
 use bevy::prelude::*;
 use bevy_aseprite_ultra::prelude::*;
+
+use crate::bullet::config::animation::*;
+use crate::bullet::Bullet;
 
 pub fn set_bullet_sprite(
     mut bullet: Query<&mut AseSpriteAnimation, Added<Bullet>>,
     server: Res<AssetServer>,
 ) {
     for mut animation in &mut bullet {
-        animation.aseprite = server.load("reimu.aseprite");
-        animation.animation = Animation::default().with_tag(DEFAULT);
+        animation.aseprite = server.load("bullet.aseprite");
+        animation.animation = Animation::tag(DEFAULT).with_speed(ANIMATION_SPEED);
     }
 }
 
-// fn events(mut events: EventReader<AnimationEvents>, mut cmd: Commands) {
-//     for event in events.read() {
-//         match event {
-//             AnimationEvents::Finished(entity) => cmd.entity(*entity).despawn_recursive(),
-//             AnimationEvents::LoopCycleFinished(_entity) => (),
-//         };
-//     }
-// }
-//
-pub struct AnimationPlugin1;
+pub struct BulletAnimationPlugin;
 
-impl Plugin for AnimationPlugin1 {
+impl Plugin for BulletAnimationPlugin {
     fn build(&self, app: &mut App) {
         app.add_systems(Update, set_bullet_sprite);
     }
