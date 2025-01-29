@@ -1,7 +1,8 @@
 use std::f32::consts::PI;
 use std::time::Duration;
 
-use crate::bullet::{BulletBundle, BulletPivot};
+use crate::bullet::{BulletBundle, BulletPivot, PhysicsEnabled};
+use crate::colliders::SensorBundle;
 use crate::physics::shared::Acceleration;
 use bevy::prelude::*;
 use bevy_aseprite_ultra::prelude::*;
@@ -29,6 +30,8 @@ pub struct CirclePatternBundle {
     pub sprite: Sprite,
     pub animation: AseSpriteAnimation,
     pub acceleration: Acceleration,
+    #[from_entity_instance]
+    pub sensor_bundle: SensorBundle,
     pub pattern: CirclePattern,
     pub parameters: CirclePatternConstruction,
     #[worldly]
@@ -45,11 +48,15 @@ fn circle_acceleration(mut patterns: Query<(&mut Velocity, &Acceleration), With<
 }
 
 fn circle_construction_timer(
-    mut patterns: Query<&mut CirclePatternConstruction, Added<CirclePattern>>,
+    mut cmd: Commands,
+    mut patterns: Query<(Entity, &mut CirclePatternConstruction), Added<CirclePattern>>,
 ) {
-    for mut construction in &mut patterns {
+    for (circle, mut construction) in &mut patterns {
         // let speed = construction.speed;
         // construction.timer.set_duration(speed);
+        // let bullet = cmd.spawn(BulletBundle::default()).id();
+        // cmd.entity(circle).add_child(bullet);
+
         construction
             .timer
             .set_duration(Duration::from_secs_f64(0.07));
@@ -70,6 +77,10 @@ fn circle_construction(
         }
 
         if construction.bullets_amount >= 12 {
+            construction.finished = true;
+        }
+
+        if construction.finished {
             return;
         }
 
@@ -82,10 +93,27 @@ fn circle_construction(
                 ..Default::default()
             })
             .id();
-        println!("{:?}", bullet);
         construction.bullets_amount += 1;
 
+        cmd.entity(bullet).insert(RigidBodyDisabled);
         cmd.entity(circle).add_child(bullet);
+        // println!("{:?} {:?}", bullet, circle);
+    }
+}
+
+fn circle_finish_construction(
+    mut patterns: Query<(&CirclePatternConstruction, Entity), With<CirclePattern>>,
+    children: Query<&Children>,
+    mut cmd: Commands,
+) {
+    for (construction, pattern) in &mut patterns {
+        if !construction.finished {
+            return;
+        }
+
+        for bullet in children.children(pattern) {
+            cmd.entity(*bullet).remove::<RigidBodyDisabled>();
+        }
     }
 }
 
@@ -100,6 +128,7 @@ impl Plugin for CirclePatternPlugin {
         app.register_ldtk_entity::<CirclePatternBundle>("CirclePattern")
             .add_systems(Update, circle_construction_timer)
             .add_systems(Update, circle_construction)
+            .add_systems(Update, circle_finish_construction)
             .add_systems(Update, circle_acceleration);
     }
 }

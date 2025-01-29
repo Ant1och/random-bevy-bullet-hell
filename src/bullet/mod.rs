@@ -21,6 +21,9 @@ pub struct Bullet;
 #[derive(PartialEq, Debug, Default, Component)]
 pub struct BulletPivot(pub Transform);
 
+#[derive(Component, Default)]
+pub struct PhysicsEnabled(pub bool);
+
 #[derive(Default, Bundle, LdtkEntity)]
 pub struct BulletBundle {
     pub sprite: Sprite,
@@ -31,10 +34,11 @@ pub struct BulletBundle {
     pub acceleration: Acceleration,
     pub acceleration_scale: AccelerationScale,
     pub pivot: BulletPivot,
-    #[worldly]
-    pub worldly: Worldly,
+    pub physics_enabled: PhysicsEnabled,
+    // #[worldly]
+    // pub worldly: Worldly,
     pub transform: Transform,
-    #[from_entity_instance]
+    // #[from_entity_instance]
     pub entity_instance: EntityInstance,
 }
 
@@ -65,8 +69,8 @@ pub struct BulletPlugin;
 
 impl Plugin for BulletPlugin {
     fn build(&self, app: &mut App) {
-        app.register_ldtk_entity::<BulletBundle>("Bullet")
-            .add_plugins(BulletPhysicsPlugin)
+        // app.register_ldtk_entity::<BulletBundle>("Bullet")
+        app.add_plugins(BulletPhysicsPlugin)
             // .add_systems(Update, bullet_player_collision)
             .add_systems(Update, player_damage.run_if(bullet_player_collision))
             .add_plugins(BulletAnimationPlugin);
