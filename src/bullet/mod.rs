@@ -21,9 +21,6 @@ pub struct Bullet;
 #[derive(PartialEq, Debug, Default, Component)]
 pub struct BulletPivot(pub Transform);
 
-#[derive(Component, Default)]
-pub struct PhysicsEnabled(pub bool);
-
 #[derive(Default, Bundle, LdtkEntity)]
 pub struct BulletBundle {
     pub sprite: Sprite,
@@ -34,8 +31,7 @@ pub struct BulletBundle {
     pub acceleration: Acceleration,
     pub acceleration_scale: AccelerationScale,
     pub pivot: BulletPivot,
-    pub physics_enabled: PhysicsEnabled,
-    // #[worldly]
+    // #[worldly
     // pub worldly: Worldly,
     pub transform: Transform,
     // #[from_entity_instance]

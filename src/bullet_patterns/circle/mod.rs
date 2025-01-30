@@ -1,7 +1,8 @@
 use std::f32::consts::PI;
 use std::time::Duration;
 
-use crate::bullet::{BulletBundle, BulletPivot, PhysicsEnabled};
+use crate::bullet::Bullet;
+use crate::bullet::{BulletBundle, BulletPivot};
 use crate::colliders::SensorBundle;
 use crate::physics::shared::Acceleration;
 use bevy::prelude::*;
@@ -48,7 +49,6 @@ fn circle_acceleration(mut patterns: Query<(&mut Velocity, &Acceleration), With<
 }
 
 fn circle_construction_timer(
-    mut cmd: Commands,
     mut patterns: Query<(Entity, &mut CirclePatternConstruction), Added<CirclePattern>>,
 ) {
     for (circle, mut construction) in &mut patterns {
@@ -97,7 +97,6 @@ fn circle_construction(
 
         cmd.entity(bullet).insert(RigidBodyDisabled);
         cmd.entity(circle).add_child(bullet);
-        // println!("{:?} {:?}", bullet, circle);
     }
 }
 
@@ -110,9 +109,48 @@ fn circle_finish_construction(
         if !construction.finished {
             return;
         }
-
         for bullet in children.children(pattern) {
             cmd.entity(*bullet).remove::<RigidBodyDisabled>();
+        }
+    }
+}
+
+fn circle_setup_bullets(
+    mut patterns: Query<(&CirclePatternConstruction, Entity), With<CirclePattern>>,
+    children: Query<&Children>,
+    mut bullet_query: Query<
+        (&mut Velocity, &mut Acceleration, &BulletPivot, &Transform),
+        With<Bullet>,
+    >,
+) {
+    for (construction, pattern) in &mut patterns {
+        if construction.finished {
+            return;
+        }
+
+        for bullet in children.children(pattern) {
+            let Ok((
+                mut velocity,
+                mut acceleration,
+                BulletPivot(Transform {
+                    translation: pivot,
+                    rotation: _,
+                    scale: _,
+                }),
+                Transform {
+                    translation,
+                    rotation: _,
+                    scale: _,
+                },
+            )) = bullet_query.get_mut(*bullet)
+            else {
+                return;
+            };
+            {
+                velocity.linvel = Vec2::from_angle(PI / 2.).rotate(translation.truncate());
+                velocity.linvel = velocity.linvel / velocity.linvel.length() * 60.;
+                acceleration.0 = Vec2::ZERO;
+            }
         }
     }
 }
@@ -128,7 +166,10 @@ impl Plugin for CirclePatternPlugin {
         app.register_ldtk_entity::<CirclePatternBundle>("CirclePattern")
             .add_systems(Update, circle_construction_timer)
             .add_systems(Update, circle_construction)
-            .add_systems(Update, circle_finish_construction)
+            .add_systems(
+                Update,
+                (circle_finish_construction, circle_setup_bullets).chain(),
+            )
             .add_systems(Update, circle_acceleration);
     }
 }
