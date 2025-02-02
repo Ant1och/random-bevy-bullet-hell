@@ -1,4 +1,11 @@
-use bevy::prelude::Vec2;
+use bevy::{math::IVec2, prelude::Vec2};
+
+pub fn ldtk_to_bevy_vec2(from: IVec2) -> Vec2 {
+    Vec2 {
+        x: from.x as f32,
+        y: -from.y as f32,
+    }
+}
 
 pub fn move_toward_f32(from: f32, to: f32, delta: f64) -> f32 {
     let diff = to - from;

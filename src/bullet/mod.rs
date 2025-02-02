@@ -18,9 +18,6 @@ use physics::BulletPhysicsPlugin;
 #[require(AccelerationScale(|| AccelerationScale(0.1)))]
 pub struct Bullet;
 
-#[derive(PartialEq, Debug, Default, Component)]
-pub struct BulletPivot(pub Transform);
-
 #[derive(Default, Bundle, LdtkEntity)]
 pub struct BulletBundle {
     pub sprite: Sprite,
@@ -30,7 +27,6 @@ pub struct BulletBundle {
     pub bullet: Bullet,
     pub acceleration: Acceleration,
     pub acceleration_scale: AccelerationScale,
-    pub pivot: BulletPivot,
     // #[worldly
     // pub worldly: Worldly,
     pub transform: Transform,

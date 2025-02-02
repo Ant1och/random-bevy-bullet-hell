@@ -16,6 +16,7 @@ pub struct ColliderBundle {
     pub friction: Friction,
     pub density: ColliderMassProperties,
     pub collision_types: ActiveCollisionTypes,
+    pub damping: Damping,
 }
 
 #[derive(Default, Bundle, LdtkIntCell)]
@@ -66,6 +67,10 @@ impl From<&EntityInstance> for ColliderBundle {
                 gravity_scale: GravityScale(0.),
                 rotation_constraints,
                 density: ColliderMassProperties::Mass(0.),
+                damping: Damping {
+                    linear_damping: 0.,
+                    angular_damping: 0.,
+                },
                 ..Default::default()
             },
             _ => ColliderBundle::default(),

@@ -12,6 +12,7 @@ mod camera;
 mod colliders;
 mod config;
 mod ground_detection;
+mod input;
 mod physics;
 mod player;
 mod shared;
@@ -62,5 +63,6 @@ fn main() {
         .add_plugins(bullet_patterns::PatternsPlugin)
         .add_plugins(camera::CameraPlugin)
         .add_plugins(WorldInspectorPlugin::new())
+        .add_plugins(input::CustomInputPlugin)
         .run();
 }

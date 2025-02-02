@@ -16,11 +16,6 @@ use physics::PlayerPhysicsPlugin;
 pub struct Player;
 
 #[derive(Component, Default)]
-pub struct DashState {
-    is_dashing: bool,
-}
-
-#[derive(Component, Default)]
 pub struct LookingDirection(f32);
 
 #[derive(Resource)]
@@ -42,7 +37,6 @@ pub struct PlayerBundle {
     #[from_entity_instance]
     pub collider_bundle: ColliderBundle,
     pub player: Player,
-    pub dash_state: DashState,
     pub looking_direction: LookingDirection,
     #[worldly]
     pub worldly: Worldly,

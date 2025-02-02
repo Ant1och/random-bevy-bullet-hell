@@ -1,6 +1,7 @@
 use crate::{
     ground_detection::GroundDetection,
-    player::{direction, DashState, DashTimer, LookingDirection, Player},
+    input::prelude::*,
+    player::{DashTimer, LookingDirection, Player},
     shared::move_toward_f32,
 };
 use bevy::prelude::*;
@@ -34,40 +35,22 @@ fn dash(velocity: &mut Mut<'_, Velocity>, looking_direction: f32, direction: Vec
 }
 
 fn player_dash(
-    mut player: Query<
-        (
-            &LookingDirection,
-            &mut Velocity,
-            &mut DashState,
-            &GroundDetection,
-        ),
-        With<Player>,
-    >,
-    input: Res<ButtonInput<KeyCode>>,
+    mut player: Query<(&LookingDirection, &mut Velocity), With<Player>>,
+    input: Query<(&Direction, &KeysPressed), With<CustomInput>>,
     mut dash_timer: ResMut<DashTimer>,
-    time: Res<Time>,
 ) {
-    let delta = time.delta_secs_f64();
-    let Ok((looking_direction, mut velocity, mut dash_state, ground_detection)) =
-        player.get_single_mut()
-    else {
+    let Ok((looking_direction, mut velocity)) = player.get_single_mut() else {
         return;
     };
 
-    if input.just_pressed(KeyCode::ShiftLeft) {
-        dash(&mut velocity, looking_direction.0, direction(&input));
+    let Ok((direction, keys)) = input.get_single() else {
+        return;
+    };
+
+    if keys.just_pressed(KeyType::Dash) {
+        dash(&mut velocity, looking_direction.0, direction.0);
 
         dash_timer.0.reset();
-        dash_state.is_dashing = true;
-    }
-
-    if ground_detection.just_grounded {
-        //&& !input.just_pressed(KeyCode::ShiftLeft) {
-        dash_state.is_dashing = false;
-    }
-
-    if dash_state.is_dashing && velocity.linvel.y > 0. {
-        velocity.linvel.y = move_toward_f32(velocity.linvel.y, 0., PLAYER_DECELLERATION * delta)
     }
 }
 
@@ -86,15 +69,37 @@ fn player_gravity(
     }
 }
 
+fn player_decelleration(mut player: Query<&mut Velocity, With<Player>>, time: Res<Time>) {
+    let delta = time.delta().as_secs_f64();
+    let Ok(mut velocity) = player.get_single_mut() else {
+        return;
+    };
+    let decelleration_x =
+        PLAYER_DECELLERATION * (velocity.linvel.x.abs().powf(0.5) + 1.) as f64 * delta;
+    let decelleration_y =
+        PLAYER_DECELLERATION * (velocity.linvel.y.abs().powf(0.5) + 1.) as f64 * delta;
+    let decelleration_y_down = PLAYER_DECELLERATION / PLAYER_GRAVITY * delta;
+
+    velocity.linvel.y = match velocity.linvel.y > 0. {
+        true => move_toward_f32(velocity.linvel.y, 0., decelleration_y),
+        false => move_toward_f32(velocity.linvel.y, 0., decelleration_y_down),
+    };
+
+    velocity.linvel.x = move_toward_f32(velocity.linvel.x, 0., decelleration_x);
+}
+
 fn player_jump(
     mut player: Query<(&mut Velocity, &GroundDetection), With<Player>>,
-    input: Res<ButtonInput<KeyCode>>,
+    input: Query<&KeysPressed, With<CustomInput>>,
 ) {
     let Ok((mut velocity, ground_detection)) = player.get_single_mut() else {
         return;
     };
+    let Ok(keys) = input.get_single() else {
+        return;
+    };
 
-    if input.pressed(KeyCode::Space) && ground_detection.grounded {
+    if keys.pressed(KeyType::Jump) && ground_detection.grounded {
         velocity.linvel.y = PLAYER_JUMP_STRENGTH;
     }
 }
@@ -102,26 +107,31 @@ fn player_jump(
 fn player_horizontal_movement(
     mut player: Query<&mut Velocity, With<Player>>,
     time: Res<Time>,
-    input: Res<ButtonInput<KeyCode>>,
+    input: Query<&Direction, With<CustomInput>>,
 ) {
-    let delta = time.delta().as_secs_f64();
-    let direction = direction(&input);
-    let new_vel_x = direction.x * PLAYER_SPEED;
     let Ok(mut velocity) = player.get_single_mut() else {
         return;
     };
-
-    velocity.linvel.x = match direction.x {
-        0. => move_toward_f32(velocity.linvel.x, new_vel_x, PLAYER_DECELLERATION * delta),
-        _ => move_toward_f32(velocity.linvel.x, new_vel_x, PLAYER_ACELLERATION * delta),
+    let Ok(Direction(direction)) = input.get_single() else {
+        return;
     };
+
+    let delta = time.delta().as_secs_f64();
+    let new_vel_x = direction.x * PLAYER_SPEED;
+    let acceleration = PLAYER_ACELLERATION * delta;
+
+    if direction.x != 0. && new_vel_x.abs() > velocity.linvel.x.abs() {
+        velocity.linvel.x = move_toward_f32(velocity.linvel.x, new_vel_x, acceleration);
+    }
 }
 
 fn player_looking_direction(
     mut player: Query<&mut LookingDirection, With<Player>>,
-    input: Res<ButtonInput<KeyCode>>,
+    input: Query<&Direction, With<CustomInput>>,
 ) {
-    let direction = direction(&input);
+    let Ok(Direction(direction)) = input.get_single() else {
+        return;
+    };
 
     let Ok(mut looking_direction) = player.get_single_mut() else {
         return;
@@ -164,6 +174,7 @@ impl Plugin for PlayerPhysicsPlugin {
                 player_horizontal_movement,
                 player_looking_direction,
                 player_autostep,
+                player_decelleration,
             ),
         );
     }

@@ -2,94 +2,138 @@ use std::f32::consts::PI;
 use std::time::Duration;
 
 use crate::bullet::Bullet;
-use crate::bullet::{BulletBundle, BulletPivot};
+use crate::bullet::BulletBundle;
 use crate::colliders::SensorBundle;
 use crate::physics::shared::Acceleration;
+use crate::physics::shared::AccelerationScale;
 use bevy::prelude::*;
 use bevy_aseprite_ultra::prelude::*;
 use bevy_ecs_ldtk::prelude::*;
 use bevy_rapier2d::prelude::*;
 
-const DEFAULT_CONSTRUCTION_SPEED: f64 = 110.1;
-
 #[derive(PartialEq, Debug, Default, Component)]
-#[require(CirclePatternConstruction(|| CirclePatternConstruction {bullets_max_amount: 12, speed: Duration::from_secs_f64(DEFAULT_CONSTRUCTION_SPEED), radius: 10., ..Default::default()}))]
 pub struct CirclePattern;
 
-#[derive(PartialEq, Debug, Default, Component)]
+#[derive(PartialEq, Debug, Default, Component, Reflect)]
 pub struct CirclePatternConstruction {
     radius: f64,
     bullets_max_amount: u32,
     bullets_amount: u32,
+    bullets_acceleration_scale: AccelerationScale,
     speed: Duration,
+    rotation_speed: f32,
     timer: Timer,
     finished: bool,
 }
 
-#[derive(Default, Bundle, LdtkEntity)]
+#[derive(Bundle, LdtkEntity, Default)]
 pub struct CirclePatternBundle {
     pub sprite: Sprite,
     pub animation: AseSpriteAnimation,
+    #[with(Acceleration::from_field)]
     pub acceleration: Acceleration,
     #[from_entity_instance]
     pub sensor_bundle: SensorBundle,
     pub pattern: CirclePattern,
+    #[with(CirclePatternConstruction::from_field)]
     pub parameters: CirclePatternConstruction,
     #[worldly]
     pub worldly: Worldly,
     pub transform: Transform,
     #[from_entity_instance]
     pub entity_instance: EntityInstance,
+    pub disabled: RigidBodyDisabled,
 }
 
-fn circle_acceleration(mut patterns: Query<(&mut Velocity, &Acceleration), With<CirclePattern>>) {
-    for (mut velocity, acceleration) in &mut patterns {
-        velocity.linvel += acceleration.0;
+impl CirclePatternConstruction {
+    pub fn from_field(entity_instance: &EntityInstance) -> Self {
+        CirclePatternConstruction {
+            radius: *entity_instance
+                .get_float_field("radius")
+                .expect("CirclePattern should have radius defined") as f64,
+            bullets_max_amount: *entity_instance
+                .get_int_field("bullets_max_amount")
+                .expect("CirclePattern should have bullets_max_amount defined")
+                as u32,
+            rotation_speed: *entity_instance
+                .get_float_field("rotation_speed")
+                .expect("CirclePattern should have rotation_speed defined"),
+            bullets_acceleration_scale: AccelerationScale(
+                *entity_instance
+                    .get_float_field("bullets_acceleration_scale")
+                    .expect("CirclePattern should have bullets_acceleration_scale defined")
+                    as f64,
+            ),
+            speed: Duration::from_secs_f64(
+                *entity_instance
+                    .get_float_field("construction_speed")
+                    .expect("CirclePattern should have construction_speed defined")
+                    as f64,
+            ),
+            ..default()
+        }
+    }
+}
+
+fn circle_acceleration(
+    mut patterns: Query<
+        (&mut Velocity, &Acceleration, &CirclePatternConstruction),
+        With<CirclePattern>,
+    >,
+) {
+    for (mut velocity, acceleration, construction) in &mut patterns {
+        if construction.finished {
+            velocity.linvel += acceleration.0;
+        }
     }
 }
 
 fn circle_construction_timer(
-    mut patterns: Query<(Entity, &mut CirclePatternConstruction), Added<CirclePattern>>,
+    mut patterns: Query<&mut CirclePatternConstruction, Added<CirclePattern>>,
 ) {
-    for (circle, mut construction) in &mut patterns {
-        // let speed = construction.speed;
-        // construction.timer.set_duration(speed);
-        // let bullet = cmd.spawn(BulletBundle::default()).id();
-        // cmd.entity(circle).add_child(bullet);
+    for mut construction in &mut patterns {
+        let speed = construction.speed;
+        construction.timer.set_duration(speed);
 
-        construction
-            .timer
-            .set_duration(Duration::from_secs_f64(0.07));
         construction.timer.set_mode(TimerMode::Repeating);
     }
 }
 
 fn circle_construction(
     mut cmd: Commands,
-    mut patterns: Query<(&Transform, &mut CirclePatternConstruction, Entity), With<CirclePattern>>,
+    mut patterns: Query<(&mut CirclePatternConstruction, Entity), With<CirclePattern>>,
     time: Res<Time>,
 ) {
     let delta = time.delta();
 
-    for (transform, mut construction, circle) in &mut patterns {
+    for (mut construction, circle) in &mut patterns {
+        // println!("{:?} {:?}", circle, construction.timer);
+
         if !construction.timer.tick(delta).just_finished() {
-            return;
+            continue;
         }
 
-        if construction.bullets_amount >= 12 {
+        if construction.bullets_amount >= construction.bullets_max_amount {
             construction.finished = true;
         }
 
         if construction.finished {
-            return;
+            continue;
         }
 
-        let translation = next_bullet_position(construction.bullets_amount, 12, 100.).extend(0.);
+        let translation = next_bullet_position(
+            construction.bullets_amount,
+            construction.bullets_max_amount,
+            construction.radius,
+        )
+        .extend(0.);
+
+        let acceleration_scale = construction.bullets_acceleration_scale.clone();
 
         let bullet = cmd
             .spawn(BulletBundle {
-                pivot: BulletPivot(transform.clone()),
                 transform: Transform::from_translation(translation),
+                acceleration_scale,
                 ..Default::default()
             })
             .id();
@@ -105,38 +149,31 @@ fn circle_finish_construction(
     children: Query<&Children>,
     mut cmd: Commands,
 ) {
-    for (construction, pattern) in &mut patterns {
+    for (construction, circle) in &mut patterns {
         if !construction.finished {
-            return;
+            continue;
         }
-        for bullet in children.children(pattern) {
+        for bullet in children.children(circle) {
             cmd.entity(*bullet).remove::<RigidBodyDisabled>();
         }
+        cmd.entity(circle).remove::<RigidBodyDisabled>();
     }
 }
 
 fn circle_setup_bullets(
     mut patterns: Query<(&CirclePatternConstruction, Entity), With<CirclePattern>>,
     children: Query<&Children>,
-    mut bullet_query: Query<
-        (&mut Velocity, &mut Acceleration, &BulletPivot, &Transform),
-        With<Bullet>,
-    >,
+    mut bullet_query: Query<(&mut Velocity, &mut Acceleration, &Transform), With<Bullet>>,
 ) {
     for (construction, pattern) in &mut patterns {
         if construction.finished {
-            return;
+            continue;
         }
 
         for bullet in children.children(pattern) {
             let Ok((
                 mut velocity,
                 mut acceleration,
-                BulletPivot(Transform {
-                    translation: pivot,
-                    rotation: _,
-                    scale: _,
-                }),
                 Transform {
                     translation,
                     rotation: _,
@@ -144,11 +181,12 @@ fn circle_setup_bullets(
                 },
             )) = bullet_query.get_mut(*bullet)
             else {
-                return;
+                continue;
             };
             {
                 velocity.linvel = Vec2::from_angle(PI / 2.).rotate(translation.truncate());
-                velocity.linvel = velocity.linvel / velocity.linvel.length() * 60.;
+                velocity.linvel =
+                    velocity.linvel / velocity.linvel.length() * construction.rotation_speed;
                 acceleration.0 = Vec2::ZERO;
             }
         }
@@ -159,6 +197,30 @@ fn next_bullet_position(current_amount: u32, max_amount: u32, radius: f64) -> Ve
     Vec2::from_angle((current_amount as f32 * 2. * PI) / max_amount as f32) * radius as f32
 }
 
+fn circle_bullet_acceleration(
+    mut patterns: Query<(&CirclePatternConstruction, Entity), With<CirclePattern>>,
+    children: Query<&Children>,
+    mut bullet_query: Query<(&mut Acceleration, &Transform), With<Bullet>>,
+    time: Res<Time>,
+) {
+    let delta = time.delta_secs_f64();
+
+    for (construction, circle) in &mut patterns {
+        for bullet in children.children(circle) {
+            let Ok((mut acceleration, transform)) = bullet_query.get_mut(*bullet) else {
+                continue;
+            };
+
+            let relative_position = transform.translation.truncate();
+            let direction = -relative_position / relative_position.length();
+            let accel_scale = construction.bullets_acceleration_scale.0;
+
+            // Accelerate towards parent
+            acceleration.0 = direction * (accel_scale * delta) as f32;
+        }
+    }
+}
+
 pub struct CirclePatternPlugin;
 
 impl Plugin for CirclePatternPlugin {
@@ -166,10 +228,8 @@ impl Plugin for CirclePatternPlugin {
         app.register_ldtk_entity::<CirclePatternBundle>("CirclePattern")
             .add_systems(Update, circle_construction_timer)
             .add_systems(Update, circle_construction)
-            .add_systems(
-                Update,
-                (circle_finish_construction, circle_setup_bullets).chain(),
-            )
-            .add_systems(Update, circle_acceleration);
+            .add_systems(Update, (circle_finish_construction, circle_setup_bullets))
+            .add_systems(Update, circle_acceleration)
+            .add_systems(Update, circle_bullet_acceleration);
     }
 }
