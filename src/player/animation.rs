@@ -1,16 +1,21 @@
+use crate::input::prelude::*;
 use crate::player::config::animation::*;
-use crate::player::{direction, LookingDirection, Player};
+use crate::player::{LookingDirection, Player};
 use bevy::prelude::*;
 use bevy_aseprite_ultra::prelude::*;
 
 pub fn player_animation(
-    input: Res<ButtonInput<KeyCode>>,
+    input: Query<&Direction, With<CustomInput>>,
     mut player: Query<(&mut AseSpriteAnimation, &mut Sprite, &LookingDirection), With<Player>>,
 ) {
     let Ok((mut asesprite, mut sprite, looking_direction)) = player.get_single_mut() else {
-        // error!("Cannot find Player in App!");
         return;
     };
+    let direction = match input.get_single() {
+        Ok(val) => val.0,
+        Err(_) => Vec2::ZERO,
+    };
+
     sprite.flip_x = match looking_direction.0 {
         1. => false,
         -1. => true,
@@ -20,7 +25,6 @@ pub fn player_animation(
         Some(val) => val,
         None => DEFAULT.to_string(),
     };
-    let direction = direction(&input);
 
     let new_animation = match direction.x {
         0. => STAND,
@@ -33,12 +37,15 @@ pub fn player_animation(
 }
 
 pub fn set_player_sprite(
-    mut player: Query<&mut AseSpriteAnimation, Added<Player>>,
+    mut player: Query<(&mut AseSpriteAnimation, &mut Transform), Added<Player>>,
     server: Res<AssetServer>,
 ) {
-    let Ok(mut animation) = player.get_single_mut() else {
+    let Ok((mut animation, mut transform)) = player.get_single_mut() else {
         return;
     };
+
+    // Resize player and their sprite
+    transform.scale.y *= 18. / 48.;
 
     animation.aseprite = server.load("reimu.aseprite");
     animation.animation = Animation::default().with_tag(DEFAULT);
@@ -52,7 +59,7 @@ pub fn set_player_sprite(
 //         };
 //     }
 // }
-//
+
 pub struct PlayerAnimationPlugin;
 
 impl Plugin for PlayerAnimationPlugin {

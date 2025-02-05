@@ -16,25 +16,25 @@ pub struct CirclePattern;
 
 #[derive(PartialEq, Debug, Default, Component, Reflect)]
 pub struct CirclePatternConstruction {
-    radius: f64,
-    bullets_max_amount: u32,
-    bullets_amount: u32,
-    bullets_acceleration_scale: AccelerationScale,
-    speed: Duration,
-    rotation_speed: f32,
-    timer: Timer,
-    finished: bool,
+    pub radius: f64,
+    pub bullets_max_amount: u32,
+    pub bullets_acceleration_scale: AccelerationScale,
+    pub speed: Duration,
+    pub rotation_speed: f32,
+    pub bullets_amount: u32,
+    pub timer: Timer,
+    pub finished: bool,
 }
 
 #[derive(Bundle, LdtkEntity, Default)]
 pub struct CirclePatternBundle {
+    pub entity: CirclePattern,
     pub sprite: Sprite,
     pub animation: AseSpriteAnimation,
     #[with(Acceleration::from_field)]
     pub acceleration: Acceleration,
     #[from_entity_instance]
     pub sensor_bundle: SensorBundle,
-    pub pattern: CirclePattern,
     #[with(CirclePatternConstruction::from_field)]
     pub parameters: CirclePatternConstruction,
     #[worldly]
@@ -75,6 +75,15 @@ impl CirclePatternConstruction {
     }
 }
 
+impl CirclePatternBundle {
+    pub fn from_params(params: CirclePatternConstruction) -> Self {
+        CirclePatternBundle {
+            parameters: params,
+            ..default()
+        }
+    }
+}
+
 fn circle_acceleration(
     mut patterns: Query<
         (&mut Velocity, &Acceleration, &CirclePatternConstruction),
@@ -107,8 +116,6 @@ fn circle_construction(
     let delta = time.delta();
 
     for (mut construction, circle) in &mut patterns {
-        // println!("{:?} {:?}", circle, construction.timer);
-
         if !construction.timer.tick(delta).just_finished() {
             continue;
         }
@@ -171,24 +178,16 @@ fn circle_setup_bullets(
         }
 
         for bullet in children.children(pattern) {
-            let Ok((
-                mut velocity,
-                mut acceleration,
-                Transform {
-                    translation,
-                    rotation: _,
-                    scale: _,
-                },
-            )) = bullet_query.get_mut(*bullet)
+            let Ok((mut velocity, mut acceleration, Transform { translation, .. })) =
+                bullet_query.get_mut(*bullet)
             else {
                 continue;
             };
-            {
-                velocity.linvel = Vec2::from_angle(PI / 2.).rotate(translation.truncate());
-                velocity.linvel =
-                    velocity.linvel / velocity.linvel.length() * construction.rotation_speed;
-                acceleration.0 = Vec2::ZERO;
-            }
+
+            velocity.linvel = Vec2::from_angle(PI / 2.).rotate(translation.truncate());
+            velocity.linvel = velocity.linvel / velocity.linvel.length();
+            velocity.linvel *= construction.rotation_speed;
+            acceleration.0 = Vec2::ZERO;
         }
     }
 }
@@ -215,7 +214,7 @@ fn circle_bullet_acceleration(
             let direction = -relative_position / relative_position.length();
             let accel_scale = construction.bullets_acceleration_scale.0;
 
-            // Accelerate towards parent
+            // Accelerate towards center (parent)
             acceleration.0 = direction * (accel_scale * delta) as f32;
         }
     }

@@ -14,10 +14,15 @@ pub struct Target(Vec2);
 pub struct CameraBundle {
     camera: Camera2d,
     target: Target,
+    msaa: Msaa,
 }
 
 fn spawn_camera(mut cmd: Commands) {
-    cmd.spawn(CameraBundle::default());
+    cmd.spawn(CameraBundle {
+        // Texture bleeding fix
+        msaa: Msaa::Off,
+        ..default()
+    });
 }
 
 #[allow(clippy::type_complexity)]

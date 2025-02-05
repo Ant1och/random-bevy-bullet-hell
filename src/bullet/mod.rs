@@ -1,5 +1,5 @@
 use crate::physics::shared::{Acceleration, AccelerationScale};
-use crate::player::player_damage;
+use crate::player::stats::player_damage;
 use crate::{colliders::SensorBundle, player::Player};
 use bevy::prelude::*;
 use bevy_aseprite_ultra::prelude::*;
@@ -27,10 +27,10 @@ pub struct BulletBundle {
     pub bullet: Bullet,
     pub acceleration: Acceleration,
     pub acceleration_scale: AccelerationScale,
-    // #[worldly
+    // #[worldly]
     // pub worldly: Worldly,
     pub transform: Transform,
-    // #[from_entity_instance]
+    #[from_entity_instance]
     pub entity_instance: EntityInstance,
 }
 
@@ -42,7 +42,6 @@ fn bullet_player_collision(
     let Ok((player, _)) = player.get_single() else {
         return false;
     };
-
     for (bullet, _) in &bullets {
         let Some(bullet_in_player) = rapier_context.single().intersection_pair(player, bullet)
         else {

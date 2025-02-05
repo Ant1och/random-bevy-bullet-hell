@@ -1,7 +1,7 @@
 use bevy::prelude::*;
 use bevy_ecs_ldtk::prelude::*;
 
-use crate::shared::ldtk_to_bevy_vec2;
+use crate::{config::ldtk::LDTK_VECTOR_SCALE, shared::ldtk_to_bevy_vec2};
 
 #[derive(Component, Default)]
 pub struct Acceleration(pub Vec2);
@@ -13,7 +13,7 @@ impl Acceleration {
             Err(_) => Vec2::ZERO,
         };
 
-        Acceleration(acceleration)
+        Acceleration(acceleration * LDTK_VECTOR_SCALE)
     }
 }
 

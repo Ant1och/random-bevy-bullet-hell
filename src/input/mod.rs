@@ -55,7 +55,6 @@ impl KeysPressed {
 
 fn input_setup_keys(mut cmd: Commands) {
     let keys = KeysPressed::from(KEY_MAP);
-    println!("{:?}", keys);
     cmd.spawn(CustomInputBundle { keys, ..default() });
 }
 

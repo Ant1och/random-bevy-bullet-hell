@@ -1,0 +1,2 @@
+pub const PLAYER_HEALTH: i64 = 10;
+pub const PLAYER_INVINCIBILITY_TIME: f32 = 0.45;

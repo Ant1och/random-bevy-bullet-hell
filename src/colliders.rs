@@ -1,9 +1,10 @@
-use crate::player::config::collision::*;
 use bevy::prelude::*;
 use bevy_ecs_ldtk::prelude::*;
 
 use bevy_rapier2d::dynamics::GravityScale;
 use bevy_rapier2d::prelude::*;
+
+use crate::player::config::collision::*;
 
 #[derive(Default, Bundle, LdtkIntCell)]
 pub struct ColliderBundle {
@@ -52,9 +53,22 @@ impl From<&EntityInstance> for SensorBundle {
 impl From<&EntityInstance> for ColliderBundle {
     fn from(entity_instance: &EntityInstance) -> ColliderBundle {
         let rotation_constraints = LockedAxes::ROTATION_LOCKED;
+        // let mut player_shape = Vec::new();
+        // player_shape.push((
+        //     Vec2::new(
+        //         PLAYER_WIDTH / 2. * PLAYER_OFFSET_X.signum(),
+        //         PLAYER_HEIGHT / 2. * PLAYER_OFFSET_Y.signum(),
+        //     ),
+        //     1.,
+        //     Collider::cuboid(
+        //         PLAYER_WIDTH / 2. - PLAYER_OFFSET_X.abs(),
+        //         PLAYER_HEIGHT / 2. - PLAYER_OFFSET_Y.abs(),
+        //     ),
+        // ));
         match entity_instance.identifier.as_ref() {
             "Player" => ColliderBundle {
                 collider: Collider::cuboid(PLAYER_WIDTH / 2., PLAYER_HEIGHT / 2.),
+                // collider: Collider::compound(player_shape),
                 rigid_body: RigidBody::Dynamic,
                 restitution: Restitution {
                     coefficient: 0.,

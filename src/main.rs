@@ -7,15 +7,17 @@ use bevy_inspector_egui::quick::WorldInspectorPlugin;
 use bevy_rapier2d::{prelude::*, rapier::prelude::IntegrationParameters};
 
 mod bullet;
-mod bullet_patterns;
+mod bullet_pattern;
 mod camera;
 mod colliders;
 mod config;
+mod enemy;
 mod ground_detection;
 mod input;
 mod physics;
 mod player;
 mod shared;
+mod spell_card;
 mod walls;
 mod world;
 
@@ -25,8 +27,8 @@ fn spawn_context(mut commands: Commands) {
         length_unit: 1000.,
         contact_damping_ratio: 0.,
         contact_natural_frequency: 0.,
-        normalized_prediction_distance: 0.002,
-        normalized_allowed_linear_error: 0.001,
+        normalized_prediction_distance: 0.1,
+        normalized_allowed_linear_error: 0.0,
         normalized_max_corrective_velocity: 1000.,
         num_solver_iterations: NonZero::new(4).unwrap(),
         ..default()
@@ -37,6 +39,7 @@ fn spawn_context(mut commands: Commands) {
 
 fn main() {
     App::new()
+        // Pixel art fix
         .add_plugins(DefaultPlugins.set(ImagePlugin::default_nearest()))
         .add_plugins(AsepriteUltraPlugin)
         .add_plugins((
@@ -60,7 +63,9 @@ fn main() {
         .add_plugins(ground_detection::GroundDetectionPlugin)
         .add_plugins(player::PlayerPlugin)
         .add_plugins(bullet::BulletPlugin)
-        .add_plugins(bullet_patterns::PatternsPlugin)
+        .add_plugins(bullet_pattern::PatternsPlugin)
+        .add_plugins(spell_card::SpellCardPlugin)
+        .add_plugins(enemy::boss::BossPlugin)
         .add_plugins(camera::CameraPlugin)
         .add_plugins(WorldInspectorPlugin::new())
         .add_plugins(input::CustomInputPlugin)

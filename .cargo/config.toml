@@ -11,6 +11,8 @@ codegen-backend = "llvm"
 linker = "clang"
 rustflags = [
   "-C",
+  "target-feature=+x87",
+  "-C",
   "link-arg=-fuse-ld=mold",
   "-Zshare-generics=y",
 ]

@@ -3,7 +3,7 @@ use bevy::prelude::*;
 use bevy_ecs_ldtk::prelude::*;
 use bevy_rapier2d::prelude::*;
 
-use crate::config::WORLD_GRAVITY;
+use crate::config::world::WORLD_GRAVITY;
 
 pub fn setup(
     mut commands: Commands,
