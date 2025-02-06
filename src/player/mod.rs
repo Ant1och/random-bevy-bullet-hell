@@ -42,14 +42,6 @@ pub struct PlayerBundle {
     entity_instance: EntityInstance,
 }
 
-pub fn position(player: Query<&Transform, With<Player>>) -> Option<Vec2> {
-    let Ok(transform) = player.get_single() else {
-        return None;
-    };
-
-    Some(transform.translation.truncate())
-}
-
 pub struct PlayerPlugin;
 
 impl Plugin for PlayerPlugin {

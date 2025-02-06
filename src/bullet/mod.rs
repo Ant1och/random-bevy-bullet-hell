@@ -15,7 +15,6 @@ mod physics;
 use physics::BulletPhysicsPlugin;
 
 #[derive(PartialEq, Debug, Default, Component)]
-#[require(AccelerationScale(|| AccelerationScale(0.1)))]
 pub struct Bullet;
 
 #[derive(Default, Bundle, LdtkEntity)]
@@ -36,17 +35,21 @@ pub struct BulletBundle {
 
 fn bullet_player_collision(
     rapier_context: ReadRapierContext,
-    player: Query<(Entity, &Player)>,
-    bullets: Query<(Entity, &Bullet)>,
+    player: Query<Entity, With<Player>>,
+    bullets: Query<Entity, With<Bullet>>,
 ) -> bool {
-    let Ok((player, _)) = player.get_single() else {
+    let Ok(player) = player.get_single() else {
         return false;
     };
-    for (bullet, _) in &bullets {
+    for bullet in &bullets {
+        let context = rapier_context.single();
+        let pairs = context.intersection_pairs_with(bullet);
+        println!("{:?}", pairs.collect::<Vec<_>>());
         let Some(bullet_in_player) = rapier_context.single().intersection_pair(player, bullet)
         else {
             return false;
         };
+        println!("player");
 
         if bullet_in_player {
             return true;

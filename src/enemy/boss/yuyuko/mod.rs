@@ -1,13 +1,11 @@
 use std::str::FromStr;
 
-use super::{Boss, SpellCardList};
+use super::SpellCardList;
 use crate::colliders::SensorBundle;
-use crate::spell_card::circles_of_fifth::{CirclesOfFifth, CirclesOfFifthBundle};
 use crate::spell_card::SpellCard;
 use bevy::prelude::*;
 use bevy_aseprite_ultra::prelude::*;
 use bevy_ecs_ldtk::prelude::*;
-use bevy_rapier2d::prelude::*;
 
 #[derive(Component, Default)]
 pub struct Yuyuko;

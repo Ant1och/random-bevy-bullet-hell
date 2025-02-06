@@ -28,7 +28,7 @@ fn spawn_context(mut commands: Commands) {
         contact_damping_ratio: 0.,
         contact_natural_frequency: 0.,
         normalized_prediction_distance: 0.1,
-        normalized_allowed_linear_error: 0.0,
+        normalized_allowed_linear_error: 0.01,
         normalized_max_corrective_velocity: 1000.,
         num_solver_iterations: NonZero::new(4).unwrap(),
         ..default()
