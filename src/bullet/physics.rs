@@ -2,7 +2,7 @@ use bevy::prelude::*;
 use bevy_rapier2d::prelude::*;
 
 use super::Bullet;
-use crate::physics::shared::Acceleration;
+use crate::physics::Acceleration;
 
 // fn bullet_physics_enabled(
 //     mut removals: RemovedComponents<RigidBodyDisabled>,
@@ -16,12 +16,6 @@ use crate::physics::shared::Acceleration;
 //     }
 //     false
 // }
-
-fn bullet_acceleration(mut bullets: Query<(&mut Velocity, &Acceleration), With<Bullet>>) {
-    for (mut velocity, acceleration) in &mut bullets {
-        velocity.linvel += acceleration.0;
-    }
-}
 
 pub struct BulletPhysicsPlugin;
 

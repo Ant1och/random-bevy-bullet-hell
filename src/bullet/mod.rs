@@ -1,4 +1,4 @@
-use crate::physics::shared::{Acceleration, AccelerationScale};
+use crate::physics::Acceleration;
 use crate::player::stats::player_damage;
 use crate::{colliders::SensorBundle, player::Player};
 use bevy::prelude::*;
@@ -11,11 +11,16 @@ pub mod config;
 mod animation;
 use animation::BulletAnimationPlugin;
 
-mod physics;
-use physics::BulletPhysicsPlugin;
+// mod physics;
+// use physics::BulletPhysicsPlugin;
 
 #[derive(PartialEq, Debug, Default, Component)]
 pub struct Bullet;
+
+#[derive(PartialEq, Debug, Default, Component)]
+pub struct BulletParams {
+    acceleration_scale: f64,
+}
 
 #[derive(Default, Bundle, LdtkEntity)]
 pub struct BulletBundle {
@@ -25,7 +30,7 @@ pub struct BulletBundle {
     pub sensor_bundle: SensorBundle,
     pub bullet: Bullet,
     pub acceleration: Acceleration,
-    pub acceleration_scale: AccelerationScale,
+    pub params: BulletParams,
     // #[worldly]
     // pub worldly: Worldly,
     pub transform: Transform,
@@ -42,14 +47,10 @@ fn bullet_player_collision(
         return false;
     };
     for bullet in &bullets {
-        let context = rapier_context.single();
-        let pairs = context.intersection_pairs_with(bullet);
-        println!("{:?}", pairs.collect::<Vec<_>>());
         let Some(bullet_in_player) = rapier_context.single().intersection_pair(player, bullet)
         else {
             return false;
         };
-        println!("player");
 
         if bullet_in_player {
             return true;
@@ -64,7 +65,8 @@ pub struct BulletPlugin;
 impl Plugin for BulletPlugin {
     fn build(&self, app: &mut App) {
         // app.register_ldtk_entity::<BulletBundle>("Bullet")
-        app.add_plugins(BulletPhysicsPlugin)
+        app
+            // .add_plugins(BulletPhysicsPlugin)
             // .add_systems(Update, bullet_player_collision)
             .add_systems(Update, player_damage.run_if(bullet_player_collision))
             .add_plugins(BulletAnimationPlugin);

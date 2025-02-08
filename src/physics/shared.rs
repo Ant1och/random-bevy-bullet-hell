@@ -1,21 +1,33 @@
+use std::f32::consts::PI;
+
 use bevy::prelude::*;
-use bevy_ecs_ldtk::prelude::*;
 
-use crate::{config::ldtk::LDTK_VECTOR_SCALE, shared::ldtk_to_bevy_vec2};
-
-#[derive(Component, Default)]
-pub struct Acceleration(pub Vec2);
-
-impl Acceleration {
-    pub fn from_field(entity_instance: &EntityInstance) -> Self {
-        let acceleration = match entity_instance.get_point_field("acceleration") {
-            Ok(vec) => ldtk_to_bevy_vec2(vec - entity_instance.grid),
-            Err(_) => Vec2::ZERO,
-        };
-
-        Acceleration(acceleration * LDTK_VECTOR_SCALE)
-    }
+#[derive(Default, PartialEq, Debug)]
+pub enum MovementType {
+    #[default]
+    Still,
+    Circle {
+        speed: f32,
+        accel: f32,
+    },
 }
 
-#[derive(Component, Default, Reflect, Debug, PartialEq, Clone)]
-pub struct AccelerationScale(pub f64);
+impl MovementType {
+    pub fn start_velocity(&self, position: Vec2) -> Vec2 {
+        use MovementType::*;
+        match self {
+            Still => Vec2::ZERO,
+            Circle { speed, accel: _ } => {
+                let velocity = Vec2::from_angle(PI / 2.).rotate(position);
+                velocity / velocity.length() * speed
+            }
+        }
+    }
+    pub fn acceleration(&self, position: Vec2) -> Vec2 {
+        use MovementType::*;
+        match self {
+            Still => Vec2::ZERO,
+            Circle { speed: _, accel } => -position / position.length() * accel,
+        }
+    }
+}

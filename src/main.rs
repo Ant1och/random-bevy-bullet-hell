@@ -62,6 +62,7 @@ fn main() {
         .add_plugins(walls::WallPlugin)
         .add_plugins(ground_detection::GroundDetectionPlugin)
         .add_plugins(player::PlayerPlugin)
+        .add_plugins(physics::PhysicsPlugin)
         .add_plugins(bullet::BulletPlugin)
         .add_plugins(bullet_pattern::PatternsPlugin)
         .add_plugins(spell_card::SpellCardPlugin)

@@ -4,6 +4,7 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
+avian2d = { version = "0.2", default-features = false, features = [ "2d", "f64", "parry-f64" ] }
 bevy = { version = "0.15", default-features = false, features = ["multi_threaded", "bevy_state", "bevy_picking", "sysinfo_plugin", "zstd", "bevy_ui_picking_backend", "bevy_window", "wayland", "dynamic_linking", "animation", "bevy_asset", "bevy_audio", "bevy_core_pipeline", "bevy_gilrs", "bevy_scene", "bevy_sprite", "bevy_text", "bevy_ui", "bevy_winit", "default_font", "png", "vorbis"] }
 bevy-inspector-egui = "0.29"
 bevy_aseprite_ultra = "0.4"

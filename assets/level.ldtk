@@ -2470,9 +2470,9 @@
 								{ "__identifier": "construction_speed", "__type": "Float", "__value": 0.11, "__tile": null, "defUid": 112, "realEditorValues": [{ "id": "V_Float", "params": [0.11] }] },
 								{ "__identifier": "rotation_speed", "__type": "Float", "__value": 11.2, "__tile": null, "defUid": 113, "realEditorValues": [{ "id": "V_Float", "params": [11.2] }] },
 								{ "__identifier": "bullets_acceleration_scale", "__type": "Float", "__value": 10.2, "__tile": null, "defUid": 114, "realEditorValues": [{ "id": "V_Float", "params": [10.2] }] },
-								{ "__identifier": "acceleration", "__type": "Point", "__value": { "cx": 26, "cy": 14 }, "__tile": null, "defUid": 115, "realEditorValues": [{
+								{ "__identifier": "acceleration", "__type": "Point", "__value": { "cx": 26, "cy": 13 }, "__tile": null, "defUid": 115, "realEditorValues": [{
 									"id": "V_String",
-									"params": ["26,14"]
+									"params": ["26,13"]
 								}] }
 							],
 							"__worldX": 312,

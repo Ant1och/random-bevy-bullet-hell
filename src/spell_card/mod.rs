@@ -5,7 +5,8 @@ use thiserror::Error;
 
 pub mod circles_of_fifth;
 use circles_of_fifth::{
-    circle_of_fifth_setup, circles_of_fifth, CirclesOfFifthBundle, CirclesOfFifthParams,
+    circle_of_fifth_setup, circles_of_fifth, cof_setup_circles_after_construction,
+    CirclesOfFifthBundle, CirclesOfFifthParams,
 };
 
 #[derive(Debug, Error)]
@@ -24,7 +25,7 @@ impl FromStr for SpellCard {
         match string {
             "CirclesOfFifth" => Ok(CirclesOfFifth(CirclesOfFifthBundle::from_params(
                 CirclesOfFifthParams {
-                    frequency: Duration::from_secs_f64(5.),
+                    frequency: Duration::from_secs_f64(1.4),
                 },
             ))),
             _ => Err(NoSuchSpellCard),
@@ -37,6 +38,7 @@ pub struct SpellCardPlugin;
 impl Plugin for SpellCardPlugin {
     fn build(&self, app: &mut App) {
         app.add_systems(Update, circle_of_fifth_setup)
-            .add_systems(Update, circles_of_fifth);
+            .add_systems(Update, circles_of_fifth)
+            .add_systems(Update, cof_setup_circles_after_construction);
     }
 }
