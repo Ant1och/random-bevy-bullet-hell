@@ -1,5 +1,4 @@
 use std::f32::consts::PI;
-use std::ptr::replace;
 use std::time::Duration;
 
 use crate::bullet::Bullet;
@@ -33,6 +32,7 @@ pub struct CirclePatternParams {
 #[derive(Bundle, LdtkEntity, Default)]
 pub struct CirclePatternBundle {
     pub entity: CirclePattern,
+    pub name: Name,
     pub sprite: Sprite,
     pub animation: AseSpriteAnimation,
     #[with(Acceleration::from_field)]
@@ -82,6 +82,7 @@ impl CirclePatternParams {
 impl CirclePatternBundle {
     pub fn from_params(params: CirclePatternParams, velocity: Vec2, accel: Vec2) -> Self {
         CirclePatternBundle {
+            name: Name::from("Circle Pattern"),
             params,
             // velocity: Velocity::linear(velocity),
             accel: Acceleration(accel),
@@ -135,6 +136,7 @@ fn circle_construction(
 
         let bullet = cmd
             .spawn(BulletBundle {
+                name: Name::from("Bullet"),
                 transform: Transform::from_translation(translation),
                 ..Default::default()
             })

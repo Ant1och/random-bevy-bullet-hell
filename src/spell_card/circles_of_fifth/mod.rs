@@ -30,6 +30,7 @@ pub struct ShootTimer(Timer);
 
 #[derive(Bundle, Default, LdtkEntity)]
 pub struct CirclesOfFifthBundle {
+    pub name: Name,
     pub sprite: Sprite,
     pub animation: AseSpriteAnimation,
     pub entity: CirclesOfFifth,
@@ -44,6 +45,7 @@ pub struct CirclesOfFifthBundle {
 impl CirclesOfFifthBundle {
     pub fn from_params(params: CirclesOfFifthParams) -> Self {
         CirclesOfFifthBundle {
+            name: Name::from("Circles Of Fifth"),
             parameters: params,
             ..default()
         }

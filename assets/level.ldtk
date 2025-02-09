@@ -2470,9 +2470,9 @@
 								{ "__identifier": "construction_speed", "__type": "Float", "__value": 0.11, "__tile": null, "defUid": 112, "realEditorValues": [{ "id": "V_Float", "params": [0.11] }] },
 								{ "__identifier": "rotation_speed", "__type": "Float", "__value": 11.2, "__tile": null, "defUid": 113, "realEditorValues": [{ "id": "V_Float", "params": [11.2] }] },
 								{ "__identifier": "bullets_acceleration_scale", "__type": "Float", "__value": 10.2, "__tile": null, "defUid": 114, "realEditorValues": [{ "id": "V_Float", "params": [10.2] }] },
-								{ "__identifier": "acceleration", "__type": "Point", "__value": { "cx": 26, "cy": 13 }, "__tile": null, "defUid": 115, "realEditorValues": [{
+								{ "__identifier": "acceleration", "__type": "Point", "__value": { "cx": 25, "cy": 14 }, "__tile": null, "defUid": 115, "realEditorValues": [{
 									"id": "V_String",
-									"params": ["26,13"]
+									"params": ["25,14"]
 								}] }
 							],
 							"__worldX": 312,
@@ -2522,6 +2522,22 @@
 							}] }],
 							"__worldX": 40,
 							"__worldY": 128
+						},
+						{
+							"__identifier": "Bullet",
+							"__grid": [17,21],
+							"__pivot": [0.5,1],
+							"__tags": [],
+							"__tile": null,
+							"__smartColor": "#EAD4AA",
+							"iid": "25ca49e0-c210-11ef-b4f0-1327e1893acb",
+							"width": 16,
+							"height": 16,
+							"defUid": 108,
+							"px": [280,352],
+							"fieldInstances": [],
+							"__worldX": 136,
+							"__worldY": 256
 						}
 					]
 				},

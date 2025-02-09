@@ -40,7 +40,13 @@ impl SpellCardList {
 
 fn yuyuko_fight(mut bosses: Query<(Entity, &mut SpellCardList), Added<Yuyuko>>, mut cmd: Commands) {
     for (yuyuko, mut card_list) in &mut bosses {
-        let card = card_list.0[0].clone();
+        let card = match card_list.0.first() {
+            Some(val) => val.clone(),
+            None => {
+                return;
+            }
+        };
+
         card_list.0.retain(|elem| *elem != card);
         let Ok(card) = SpellCard::from_str(card.as_str()) else {
             println!("No more spell cards!");
