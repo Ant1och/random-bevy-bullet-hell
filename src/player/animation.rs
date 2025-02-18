@@ -1,4 +1,5 @@
 use crate::input::prelude::*;
+use crate::physics::looking_direction::LookDir;
 use crate::player::config::animation::*;
 use crate::player::{LookingDirection, Player};
 use bevy::prelude::*;
@@ -17,10 +18,10 @@ pub fn player_animation(
     };
 
     sprite.flip_x = match looking_direction.0 {
-        1. => false,
-        -1. => true,
-        _ => LookingDirection::default().0 <= 0.,
+        LookDir::Right => false,
+        LookDir::Left => true,
     };
+
     let animation = match asesprite.animation.tag.clone() {
         Some(val) => val,
         None => DEFAULT.to_string(),

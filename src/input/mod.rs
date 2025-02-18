@@ -79,23 +79,21 @@ fn input_update_keys(
             return;
         };
 
-        let mut pressed = key_codes
-            .into_iter()
-            .any(|&key_code| buttons.pressed(key_code));
+        let mut pressed = key_codes.iter().any(|&key_code| buttons.pressed(key_code));
 
         let mut just_pressed = key_codes
-            .into_iter()
+            .iter()
             .any(|&key_code| buttons.just_pressed(key_code));
 
         if gamepad.is_some() {
             let gamepad = gamepad.unwrap();
             pressed = pressed
                 || gamepad_codes
-                    .into_iter()
+                    .iter()
                     .any(|&gamepad_code| gamepad.pressed(gamepad_code));
             just_pressed = just_pressed
                 || gamepad_codes
-                    .into_iter()
+                    .iter()
                     .any(|&gamepad_code| gamepad.just_pressed(gamepad_code));
         }
         *key_state = CustomKeyState {

@@ -21,7 +21,7 @@ pub struct CirclePatternConstruction {
     pub finished: bool,
 }
 
-#[derive(PartialEq, Debug, Default, Component)]
+#[derive(PartialEq, Debug, Default, Component, Clone)]
 pub struct CirclePatternParams {
     pub movement_type: MovementType,
     pub radius: f64,
@@ -37,6 +37,7 @@ pub struct CirclePatternBundle {
     pub animation: AseSpriteAnimation,
     #[with(Acceleration::from_field)]
     pub accel: Acceleration,
+    pub velocity: Velocity,
     #[from_entity_instance]
     pub sensor_bundle: SensorBundle,
     #[with(CirclePatternParams::from_field)]
@@ -74,7 +75,6 @@ impl CirclePatternParams {
                     .expect("CirclePattern should have construction_speed defined")
                     as f64,
             ),
-            ..default()
         }
     }
 }
@@ -84,7 +84,7 @@ impl CirclePatternBundle {
         CirclePatternBundle {
             name: Name::from("Circle Pattern"),
             params,
-            // velocity: Velocity::linear(velocity),
+            velocity: Velocity::linear(velocity),
             accel: Acceleration(accel),
             ..default()
         }

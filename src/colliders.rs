@@ -24,7 +24,7 @@ pub struct ColliderBundle {
 pub struct SensorBundle {
     pub collider: Collider,
     pub rigid_body: RigidBody,
-    pub velocity: Velocity,
+    // pub velocity: Velocity,
     pub rotation_constraints: LockedAxes,
     pub active_events: ActiveEvents,
     pub sensor: Sensor,

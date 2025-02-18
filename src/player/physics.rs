@@ -1,6 +1,7 @@
 use crate::{
     ground_detection::GroundDetection,
     input::prelude::*,
+    physics::looking_direction::LookDir,
     player::{DashTimer, LookingDirection, Player},
     shared::move_toward_f32,
 };
@@ -10,18 +11,9 @@ use bevy_rapier2d::prelude::*;
 
 use crate::player::config::physics::*;
 
-fn dash(velocity: &mut Mut<'_, Velocity>, looking_direction: f32, direction: Vec2) {
-    let looking_direction = match looking_direction {
-        1. => 1.,
-        -1. => -1.,
-        _ => {
-            error!("Invalid looking direction!");
-            return;
-        }
-    };
-
+fn dash(velocity: &mut Mut<'_, Velocity>, looking_direction: &LookDir, direction: Vec2) {
     let dash_direction_x = match direction.y {
-        0. => looking_direction,
+        0. => looking_direction.into(),
         _ => direction.x,
     };
     let dash_direction_y = direction.y;
@@ -48,7 +40,7 @@ fn player_dash(
     };
 
     if keys.just_pressed(KeyType::Dash) {
-        dash(&mut velocity, looking_direction.0, direction.0);
+        dash(&mut velocity, &looking_direction.0, direction.0);
 
         dash_timer.0.reset();
     }
@@ -138,7 +130,7 @@ fn player_looking_direction(
     };
 
     if direction.x != 0. {
-        looking_direction.0 = direction.x;
+        looking_direction.0 = LookDir::from(direction.x);
     }
 }
 

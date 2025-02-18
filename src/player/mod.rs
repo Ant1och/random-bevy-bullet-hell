@@ -1,3 +1,4 @@
+use crate::physics::looking_direction::LookDir;
 use crate::{colliders::ColliderBundle, ground_detection::GroundDetection};
 use bevy::prelude::*;
 use bevy_aseprite_ultra::prelude::AseSpriteAnimation;
@@ -5,6 +6,7 @@ use bevy_ecs_ldtk::prelude::*;
 use bevy_rapier2d::prelude::KinematicCharacterController;
 
 pub mod config;
+use config::PLAYER_DEFAULT_LOOKING_DIRECTION;
 
 mod animation;
 use animation::PlayerAnimationPlugin;
@@ -18,11 +20,17 @@ use stats::{PlayerStats, PlayerStatsPlugin};
 #[derive(PartialEq, Debug, Default, Component)]
 pub struct Player;
 
-#[derive(Component, Default)]
-pub struct LookingDirection(f32);
-
 #[derive(Resource)]
 pub struct DashTimer(Timer);
+
+#[derive(Component)]
+pub struct LookingDirection(LookDir);
+
+impl Default for LookingDirection {
+    fn default() -> Self {
+        LookingDirection(PLAYER_DEFAULT_LOOKING_DIRECTION)
+    }
+}
 
 #[derive(Default, Bundle, LdtkEntity)]
 pub struct PlayerBundle {

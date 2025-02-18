@@ -1,3 +1,4 @@
+#![feature(x87_target_feature)]
 use std::num::NonZero;
 
 use bevy::prelude::*;
@@ -70,5 +71,7 @@ fn main() {
         .add_plugins(camera::CameraPlugin)
         .add_plugins(WorldInspectorPlugin::new())
         .add_plugins(input::CustomInputPlugin)
+        .add_plugins(bevy::diagnostic::FrameTimeDiagnosticsPlugin)
+        .add_plugins(bevy::diagnostic::LogDiagnosticsPlugin::default())
         .run();
 }

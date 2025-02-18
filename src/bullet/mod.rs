@@ -9,7 +9,7 @@ pub mod config;
 
 mod animation;
 use animation::BulletAnimationPlugin;
-use bevy_rapier2d::prelude::CollisionEvent;
+use bevy_rapier2d::prelude::{CollisionEvent, Velocity};
 
 // mod physics;
 // use physics::BulletPhysicsPlugin;
@@ -30,6 +30,7 @@ pub struct BulletBundle {
     pub animation: AseSpriteAnimation,
     #[from_entity_instance]
     pub sensor_bundle: SensorBundle,
+    pub velocity: Velocity,
     pub acceleration: Acceleration,
     pub params: BulletParams,
     // #[worldly]
