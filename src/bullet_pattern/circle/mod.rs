@@ -208,7 +208,15 @@ fn circle_bullet_acceleration(
 }
 
 fn next_bullet_position(current_amount: u32, max_amount: u32, radius: f64) -> Vec2 {
-    Vec2::from_angle((current_amount as f32 * 2. * PI) / max_amount as f32) * radius as f32
+    let n: f64 = 3.;
+    let polygon_angle: f64 = 180. * (n - 2.) / n;
+    let phi: f32 = (180. - polygon_angle) as f32 / 2.;
+
+    let a =
+        (((360 * current_amount / max_amount) as f32 + phi) % (2. * phi) - phi) as f32 / 180. * PI;
+    Vec2::from_angle((current_amount as f32 * 2. * PI) / max_amount as f32 + a)
+        * radius as f32
+        * (1. / a.cos())
 }
 
 pub struct CirclePatternPlugin;
@@ -217,8 +225,15 @@ impl Plugin for CirclePatternPlugin {
     fn build(&self, app: &mut App) {
         app.register_ldtk_entity::<CirclePatternBundle>("CirclePattern")
             .add_systems(Update, circle_construction_timer)
-            .add_systems(Update, circle_construction)
-            .add_systems(Update, (circle_finish_construction, circle_setup_bullets))
+            .add_systems(
+                Update,
+                (
+                    circle_construction,
+                    circle_setup_bullets,
+                    circle_finish_construction,
+                )
+                    .chain(),
+            )
             .add_systems(Update, circle_bullet_acceleration);
     }
 }

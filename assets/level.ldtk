@@ -2465,14 +2465,14 @@
 							"defUid": 109,
 							"px": [456,224],
 							"fieldInstances": [
-								{ "__identifier": "radius", "__type": "Float", "__value": 100, "__tile": null, "defUid": 110, "realEditorValues": [{ "id": "V_Float", "params": [100] }] },
-								{ "__identifier": "bullets_max_amount", "__type": "Int", "__value": 12, "__tile": null, "defUid": 111, "realEditorValues": [{ "id": "V_Int", "params": [12] }] },
+								{ "__identifier": "radius", "__type": "Float", "__value": 70, "__tile": null, "defUid": 110, "realEditorValues": [{ "id": "V_Float", "params": [70] }] },
+								{ "__identifier": "bullets_max_amount", "__type": "Int", "__value": 60, "__tile": null, "defUid": 111, "realEditorValues": [{ "id": "V_Int", "params": [60] }] },
 								{ "__identifier": "construction_speed", "__type": "Float", "__value": 0.11, "__tile": null, "defUid": 112, "realEditorValues": [{ "id": "V_Float", "params": [0.11] }] },
-								{ "__identifier": "rotation_speed", "__type": "Float", "__value": 11.2, "__tile": null, "defUid": 113, "realEditorValues": [{ "id": "V_Float", "params": [11.2] }] },
-								{ "__identifier": "bullets_acceleration_scale", "__type": "Float", "__value": 10.2, "__tile": null, "defUid": 114, "realEditorValues": [{ "id": "V_Float", "params": [10.2] }] },
-								{ "__identifier": "acceleration", "__type": "Point", "__value": { "cx": 25, "cy": 14 }, "__tile": null, "defUid": 115, "realEditorValues": [{
+								{ "__identifier": "rotation_speed", "__type": "Float", "__value": 0, "__tile": null, "defUid": 113, "realEditorValues": [{ "id": "V_Float", "params": [0] }] },
+								{ "__identifier": "bullets_acceleration_scale", "__type": "Float", "__value": 0, "__tile": null, "defUid": 114, "realEditorValues": [{ "id": "V_Float", "params": [0] }] },
+								{ "__identifier": "acceleration", "__type": "Point", "__value": { "cx": 28, "cy": 13 }, "__tile": null, "defUid": 115, "realEditorValues": [{
 									"id": "V_String",
-									"params": ["25,14"]
+									"params": ["28,13"]
 								}] }
 							],
 							"__worldX": 312,
@@ -2480,7 +2480,7 @@
 						},
 						{
 							"__identifier": "CirclePattern1",
-							"__grid": [39,15],
+							"__grid": [56,3],
 							"__pivot": [0.5,1],
 							"__tags": [],
 							"__tile": null,
@@ -2489,20 +2489,20 @@
 							"width": 16,
 							"height": 16,
 							"defUid": 109,
-							"px": [632,256],
+							"px": [904,64],
 							"fieldInstances": [
 								{ "__identifier": "radius", "__type": "Float", "__value": 50, "__tile": null, "defUid": 110, "realEditorValues": [{ "id": "V_Float", "params": [50] }] },
 								{ "__identifier": "bullets_max_amount", "__type": "Int", "__value": 10, "__tile": null, "defUid": 111, "realEditorValues": [{ "id": "V_Int", "params": [10] }] },
 								{ "__identifier": "construction_speed", "__type": "Float", "__value": 0.1, "__tile": null, "defUid": 112, "realEditorValues": [{ "id": "V_Float", "params": [0.1] }] },
 								{ "__identifier": "rotation_speed", "__type": "Float", "__value": 50, "__tile": null, "defUid": 113, "realEditorValues": [{ "id": "V_Float", "params": [50] }] },
 								{ "__identifier": "bullets_acceleration_scale", "__type": "Float", "__value": 200, "__tile": null, "defUid": 114, "realEditorValues": [{ "id": "V_Float", "params": [200] }] },
-								{ "__identifier": "acceleration", "__type": "Point", "__value": { "cx": 40, "cy": 11 }, "__tile": null, "defUid": 115, "realEditorValues": [{
+								{ "__identifier": "acceleration", "__type": "Point", "__value": { "cx": 61, "cy": 0 }, "__tile": null, "defUid": 115, "realEditorValues": [{
 									"id": "V_String",
-									"params": ["40,11"]
+									"params": ["61,0"]
 								}] }
 							],
-							"__worldX": 488,
-							"__worldY": 160
+							"__worldX": 760,
+							"__worldY": -32
 						},
 						{
 							"__identifier": "Yuyuko",

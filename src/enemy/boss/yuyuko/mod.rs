@@ -73,40 +73,40 @@ impl Yuyuko {
                 vec![
                     Circle {
                         params: CirclePatternParams {
-                            radius: 60.,
-                            bullets_max_amount: 24,
-                            construction_frequency: Duration::from_secs_f64(0.02),
+                            radius: 40.,
+                            bullets_max_amount: 128,
+                            construction_frequency: Duration::from_secs_f64(0.008),
                             movement_type: MovementType::Circle {
                                 speed: 20.,
-                                accel: 200.,
+                                accel: 300.,
                             },
                         },
-                        speed: 240.,
+                        speed: 200.,
                         accel: 0.01,
                     };
                     3
                 ],
-                vec![
-                    Circle {
-                        params: CirclePatternParams {
-                            radius: 60.,
-                            bullets_max_amount: 24,
-                            construction_frequency: Duration::from_secs_f64(0.02),
-                            movement_type: MovementType::Circle {
-                                speed: 25.,
-                                accel: 0.5,
-                            },
-                        },
-                        speed: 0.,
-                        accel: 0.,
-                    };
-                    1
-                ],
+                // vec![
+                //     Circle {
+                //         params: CirclePatternParams {
+                //             radius: 50.,
+                //             bullets_max_amount: 48,
+                //             construction_frequency: Duration::from_secs_f64(0.02),
+                //             movement_type: MovementType::Circle {
+                //                 speed: 25.,
+                //                 accel: -0.001,
+                //             },
+                //         },
+                //         speed: 0.,
+                //         accel: 0.,
+                //     };
+                //     1
+                // ],
             ]
             .concat(),
         );
 
-        let frequency = Duration::from_secs_f64(1.5);
+        let frequency = Duration::from_secs_f64(3.5);
 
         CirclesOfFifthBundle::from_params(circles_list, frequency)
         // CirclesOfFifthBundle::default()
