@@ -53,14 +53,14 @@ fn circle_of_fifth_setup(
                 TurretAmmo {
                     params: PatternParams {
                         scale: 40.,
-                        bullet_amount: 64,
+                        bullet_amount: 24,
                         bullet_movement: MovementType::Circle {
                             speed: 20.,
                             accel: 300.,
                         },
                         construction_frequency: Duration::from_secs_f64(0.01),
                     },
-                    construction: ConstructionType::RegularPolygon(6),
+                    construction: ConstructionType::Circle,
                     speed: 200.,
                     accel: 0.01,
                 };
