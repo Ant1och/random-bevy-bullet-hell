@@ -1,62 +1,57 @@
-use crate::{
-    bullet_pattern::circle::{CirclePatternBundle, CirclePatternParams},
-    player::Player,
-};
 use bevy::prelude::*;
 use bevy_aseprite_ultra::prelude::*;
 use bevy_ecs_ldtk::prelude::*;
 use std::time::Duration;
 
-#[derive(Component, Default)]
-pub struct CirclesOfFifth;
+use super::super::ShootTimer;
+use crate::{
+    bullet_pattern::{ConstructionType, PatternBundle, PatternParams},
+    physics::movement::MovementType,
+    player::Player,
+};
 
-#[derive(Clone, Default)]
-pub struct Circle {
-    pub params: CirclePatternParams,
+#[derive(Component, Default)]
+pub struct Turret;
+
+#[derive(Component, Default, Clone)]
+pub struct TurretAmmo {
+    pub params: PatternParams,
+    pub construction: ConstructionType,
     pub speed: f32,
     pub accel: f32,
 }
 
-#[derive(Component, Default)]
-pub struct Circles {
-    pub list: Vec<Circle>,
+#[derive(Component, Default, Clone)]
+pub struct TurretAmmoList {
+    pub list: Vec<TurretAmmo>,
     i: usize,
 }
 
-impl Circles {
-    pub fn new(list: Vec<Circle>) -> Self {
-        Circles { list, i: 0 }
-    }
-}
-
-#[derive(Component, Default)]
-pub struct ShootTimer(Timer);
-
-impl ShootTimer {
-    fn from_duration(duration: Duration) -> Self {
-        ShootTimer(Timer::new(duration, TimerMode::Repeating))
+impl TurretAmmoList {
+    pub fn new(list: Vec<TurretAmmo>) -> Self {
+        TurretAmmoList { list, i: 0 }
     }
 }
 
 #[derive(Bundle, Default, LdtkEntity)]
-pub struct CirclesOfFifthBundle {
+pub struct TurretBundle {
     pub name: Name,
     pub sprite: Sprite,
     pub animation: AseSpriteAnimation,
-    pub entity: CirclesOfFifth,
-    #[worldly]
-    pub worldly: Worldly,
+    pub entity: Turret,
+    // #[worldly]
+    // pub worldly: Worldly,
     #[from_entity_instance]
     pub entity_instance: EntityInstance,
-    pub circles: Circles,
+    pub ammo: TurretAmmoList,
     pub shoot_timer: ShootTimer,
 }
 
-impl CirclesOfFifthBundle {
-    pub fn from_params(circles: Circles, frequency: Duration) -> Self {
-        CirclesOfFifthBundle {
-            name: Name::from("Circles Of Fifth"),
-            circles,
+impl TurretBundle {
+    pub fn from_params(ammo: TurretAmmoList, frequency: Duration) -> Self {
+        TurretBundle {
+            name: Name::from("Turret"),
+            ammo,
             shoot_timer: ShootTimer::from_duration(frequency),
             ..default()
         }
@@ -64,7 +59,7 @@ impl CirclesOfFifthBundle {
 }
 
 // pub fn circle_of_fifth_setup(
-//     mut spell_card: Query<(&mut ShootTimer, &CirclesOfFifthParams), Added<CirclesOfFifth>>,
+//     mut spell_card: Query<(&mut ShootTimer, &TurretParams), Added<Turret>>,
 // ) {
 //     for (mut shoot_timer, params) in &mut spell_card {
 //         shoot_timer.0.set_mode(TimerMode::Repeating);
@@ -72,11 +67,16 @@ impl CirclesOfFifthBundle {
 //     }
 // }
 
-pub fn circles_of_fifth(
+fn turret_shoot(
     player: Query<&Transform, With<Player>>,
-    mut spell_card: Query<
-        (&mut ShootTimer, &GlobalTransform, &mut Circles, Entity),
-        With<CirclesOfFifth>,
+    mut turrets: Query<
+        (
+            &mut ShootTimer,
+            &GlobalTransform,
+            &mut TurretAmmoList,
+            Entity,
+        ),
+        With<Turret>,
     >,
     mut cmd: Commands,
     time: Res<Time>,
@@ -86,36 +86,42 @@ pub fn circles_of_fifth(
     };
     let player_position = player_position.translation.truncate();
 
-    for (mut shoot_timer, transform, mut circles, spell_card) in &mut spell_card {
+    for (mut shoot_timer, transform, mut ammo, turret) in &mut turrets {
         if shoot_timer.0.tick(time.delta()).just_finished() {
-            circles.i += 1;
+            ammo.i += 1;
 
-            if circles.i >= circles.list.len() {
-                circles.i = 0;
+            if ammo.i >= ammo.list.len() {
+                ammo.i = 0;
             }
 
-            let params = circles.list[circles.i].params.clone();
+            let params = ammo.list[ammo.i].params.clone();
+            let construction = ammo.list[ammo.i].construction.clone();
+            let speed = ammo.list[ammo.i].speed;
+            let accel = ammo.list[ammo.i].accel;
 
             let mut dir_to_player = player_position - transform.translation().truncate();
             dir_to_player = dir_to_player / dir_to_player.length();
 
-            let circle = cmd
-                .spawn(CirclePatternBundle::from_params(
+            let pattern = cmd
+                .spawn(PatternBundle::new(
                     params,
-                    dir_to_player * circles.list[circles.i].speed,
-                    dir_to_player * circles.list[circles.i].accel,
+                    construction,
+                    MovementType::Linear {
+                        velocity: dir_to_player * speed,
+                        accel,
+                    },
                 ))
                 .id();
 
-            cmd.entity(spell_card).add_child(circle);
+            cmd.entity(turret).add_child(pattern);
         }
     }
 }
 
-// pub fn cof_setup_circles_after_construction(
+// pub fn cof_setup_TurretAmmoList_after_construction(
 //     player: Query<&Transform, With<Player>>,
 //     children: Query<&Children>,
-//     mut spell_cards: Query<(&GlobalTransform, Entity), With<CirclesOfFifth>>,
+//     mut spell_cards: Query<(&GlobalTransform, Entity), With<Turret>>,
 //     mut pattern_query: Query<
 //         (&CirclePatternConstruction, &mut Velocity, &mut Acceleration),
 //         With<CirclePattern>,
@@ -140,3 +146,12 @@ pub fn circles_of_fifth(
 //         }
 //     }
 // }
+
+pub struct TurretPlugin;
+
+impl Plugin for TurretPlugin {
+    fn build(&self, app: &mut App) {
+        app.register_ldtk_entity::<TurretBundle>("Turret")
+            .add_systems(Update, turret_shoot);
+    }
+}

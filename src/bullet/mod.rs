@@ -1,3 +1,4 @@
+use crate::physics::movement::MovementType;
 use crate::physics::Acceleration;
 use crate::player::stats::player_damage;
 use crate::{colliders::SensorBundle, player::Player};
@@ -33,6 +34,7 @@ pub struct BulletBundle {
     pub velocity: Velocity,
     pub acceleration: Acceleration,
     pub params: BulletParams,
+    pub movement: MovementType,
     // #[worldly]
     // pub worldly: Worldly,
     pub transform: Transform,

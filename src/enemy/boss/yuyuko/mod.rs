@@ -1,10 +1,8 @@
 use std::time::Duration;
 
 use super::SpellCardList;
-use crate::bullet_pattern::circle::CirclePatternParams;
 use crate::colliders::SensorBundle;
-use crate::physics::shared::MovementType;
-use crate::spell_card::circles_of_fifth::{Circle, Circles, CirclesOfFifthBundle};
+use crate::spell_card::circle_of_fifth::CirclesOfFifthBundle;
 use crate::spell_card::SpellCard;
 use bevy::prelude::*;
 use bevy_aseprite_ultra::prelude::*;
@@ -68,47 +66,10 @@ impl Yuyuko {
     }
 
     fn circle_of_fifth() -> CirclesOfFifthBundle {
-        let circles_list = Circles::new(
-            [
-                vec![
-                    Circle {
-                        params: CirclePatternParams {
-                            radius: 40.,
-                            bullets_max_amount: 128,
-                            construction_frequency: Duration::from_secs_f64(0.008),
-                            movement_type: MovementType::Circle {
-                                speed: 20.,
-                                accel: 300.,
-                            },
-                        },
-                        speed: 200.,
-                        accel: 0.01,
-                    };
-                    3
-                ],
-                // vec![
-                //     Circle {
-                //         params: CirclePatternParams {
-                //             radius: 50.,
-                //             bullets_max_amount: 48,
-                //             construction_frequency: Duration::from_secs_f64(0.02),
-                //             movement_type: MovementType::Circle {
-                //                 speed: 25.,
-                //                 accel: -0.001,
-                //             },
-                //         },
-                //         speed: 0.,
-                //         accel: 0.,
-                //     };
-                //     1
-                // ],
-            ]
-            .concat(),
-        );
+        let frequency = Duration::from_secs_f64(1.);
+        let length = Duration::from_secs_f64(100.);
 
-        let frequency = Duration::from_secs_f64(3.5);
-
-        CirclesOfFifthBundle::from_params(circles_list, frequency)
+        CirclesOfFifthBundle::new(frequency, length)
         // CirclesOfFifthBundle::default()
     }
 }

@@ -1,10 +1,10 @@
-use std::str::FromStr;
+use std::{str::FromStr, time::Duration};
 
 use bevy::prelude::*;
 use thiserror::Error;
 
-pub mod circles_of_fifth;
-use circles_of_fifth::circles_of_fifth;
+pub mod circle_of_fifth;
+use circle_of_fifth::CirclesOfFifthPlugin;
 
 #[derive(Debug, Error)]
 #[error("the given SpellCard doesn't exist")]
@@ -26,11 +26,28 @@ impl FromStr for SpellCard {
     }
 }
 
+#[derive(Component, Default)]
+pub struct SpellCardTimer(Timer);
+
+impl SpellCardTimer {
+    fn new(duration: Duration) -> Self {
+        SpellCardTimer(Timer::new(duration, TimerMode::Once))
+    }
+
+    fn tick(mut timers: Query<(&mut SpellCardTimer, Entity)>, time: Res<Time>, mut cmd: Commands) {
+        for (mut timer, card) in &mut timers {
+            if timer.0.tick(time.delta()).finished() {
+                cmd.entity(card).despawn();
+            }
+        }
+    }
+}
+
 pub struct SpellCardPlugin;
 
 impl Plugin for SpellCardPlugin {
     fn build(&self, app: &mut App) {
-        app.add_systems(Update, circles_of_fifth);
-        // .add_systems(Update, cof_setup_circles_after_construction);
+        app.add_plugins(CirclesOfFifthPlugin)
+            .add_systems(Update, SpellCardTimer::tick);
     }
 }

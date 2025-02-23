@@ -15,6 +15,7 @@ pub fn setup(
     let ldtk_handle = asset_server.load("level.ldtk").into();
     commands.spawn(LdtkWorldBundle {
         ldtk_handle,
+        transform: Transform::from_xyz(0., 0., -100.),
         ..Default::default()
     });
 }

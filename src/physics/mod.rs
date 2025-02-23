@@ -4,7 +4,8 @@ use bevy_ecs_ldtk::prelude::*;
 use bevy_rapier2d::prelude::*;
 
 pub mod looking_direction;
-pub mod shared;
+pub mod movement;
+use movement::MovementTypePlugin;
 
 #[derive(Component, Default)]
 pub struct Acceleration(pub Vec2);
@@ -34,6 +35,7 @@ pub struct PhysicsPlugin;
 
 impl Plugin for PhysicsPlugin {
     fn build(&self, app: &mut App) {
-        app.add_systems(Update, physics_acceleration);
+        app.add_plugins(MovementTypePlugin)
+            .add_systems(Update, physics_acceleration);
     }
 }
