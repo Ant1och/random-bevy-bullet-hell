@@ -1,7 +1,14 @@
-use super::ConstructionType;
 use bevy::prelude::*;
 use bevy_inspector_egui::egui::emath::Numeric;
 use std::f32::consts::PI;
+
+#[derive(Component, Default, PartialEq, Debug, Clone)]
+pub enum ConstructionType {
+    #[default]
+    Circle,
+    RegularPolygon(u64),
+    Shuriken(u64),
+}
 
 impl ConstructionType {
     pub fn translation(&self, progress: u64, bullet_amount: u64) -> Vec2 {

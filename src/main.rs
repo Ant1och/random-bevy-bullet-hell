@@ -19,6 +19,7 @@ mod physics;
 mod player;
 mod shared;
 mod spell_card;
+mod ui;
 mod walls;
 mod world;
 
@@ -71,6 +72,7 @@ fn main() {
         .add_plugins(camera::CameraPlugin)
         .add_plugins(WorldInspectorPlugin::new())
         .add_plugins(input::CustomInputPlugin)
+        .add_plugins(ui::UIPlugin)
         .add_plugins(bevy::diagnostic::FrameTimeDiagnosticsPlugin)
         .add_plugins(bevy::diagnostic::LogDiagnosticsPlugin::default())
         .run();

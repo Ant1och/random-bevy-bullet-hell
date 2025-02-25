@@ -5,7 +5,7 @@ use std::time::Duration;
 
 use super::super::ShootTimer;
 use crate::{
-    bullet_pattern::{ConstructionType, PatternBundle, PatternParams},
+    bullet_pattern::{construction::ConstructionType, PatternBundle, PatternParams},
     physics::movement::MovementType,
     player::Player,
 };

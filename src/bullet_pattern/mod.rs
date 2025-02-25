@@ -8,15 +8,8 @@ use bevy_ecs_ldtk::prelude::*;
 use bevy_rapier2d::prelude::*;
 use std::time::Duration;
 
-mod construction;
-
-#[derive(Component, Default, PartialEq, Debug, Clone)]
-pub enum ConstructionType {
-    #[default]
-    Circle,
-    RegularPolygon(u64),
-    Shuriken(u64),
-}
+pub mod construction;
+use construction::ConstructionType;
 
 #[derive(PartialEq, Debug, Default, Component)]
 pub struct Pattern;
@@ -172,7 +165,10 @@ fn finish_construction(
             continue;
         }
         for bullet in children.children(circle) {
-            cmd.entity(*bullet).remove::<RigidBodyDisabled>();
+            let Some(mut bullet) = cmd.get_entity(*bullet) else {
+                return;
+            };
+            bullet.remove::<RigidBodyDisabled>();
         }
         cmd.entity(circle).remove::<RigidBodyDisabled>();
     }

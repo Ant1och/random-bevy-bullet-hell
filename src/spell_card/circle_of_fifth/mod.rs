@@ -4,7 +4,7 @@ use bevy::prelude::*;
 use bevy_ecs_ldtk::prelude::*;
 
 use crate::{
-    bullet_pattern::{ConstructionType, PatternParams},
+    bullet_pattern::{construction::ConstructionType, PatternParams},
     enemy::spawner::turret::{TurretAmmo, TurretAmmoList, TurretBundle},
     physics::movement::MovementType,
 };

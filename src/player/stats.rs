@@ -4,21 +4,32 @@ use super::{
 };
 use bevy::prelude::*;
 
-#[derive(Component, Default)]
+#[derive(Component)]
 pub struct PlayerStats {
-    health: i64,
+    pub health: i64,
 }
+
+impl Default for PlayerStats {
+    fn default() -> Self {
+        PlayerStats {
+            health: PLAYER_HEALTH,
+        }
+    }
+}
+
+#[derive(Event, Default)]
+pub struct ChangeHealth(pub i64);
 
 #[derive(Resource)]
 pub struct InvincibilityTimer(Timer);
 
-fn set_player_default_stats(mut player: Query<&mut PlayerStats, Added<Player>>) {
-    let Ok(mut stats) = player.get_single_mut() else {
-        return;
-    };
+// fn set_player_default_stats(mut player: Query<&mut PlayerStats, Added<Player>>) {
+//     let Ok(mut stats) = player.get_single_mut() else {
+//         return;
+//     };
 
-    stats.health = PLAYER_HEALTH;
-}
+//     stats.health = PLAYER_HEALTH;
+// }
 
 fn player_invincibility_timer(mut invicibility_timer: ResMut<InvincibilityTimer>, time: Res<Time>) {
     invicibility_timer.0.tick(time.delta());
@@ -27,28 +38,31 @@ fn player_invincibility_timer(mut invicibility_timer: ResMut<InvincibilityTimer>
 pub fn player_damage(
     mut player: Query<&mut PlayerStats, With<Player>>,
     mut invicibility_timer: ResMut<InvincibilityTimer>,
+    mut reader: EventReader<ChangeHealth>,
 ) {
     let Ok(mut stats) = player.get_single_mut() else {
         return;
     };
 
     if invicibility_timer.0.finished() {
-        stats.health -= 1;
-        invicibility_timer.0.reset();
+        for event in reader.read() {
+            stats.health += event.0;
+            invicibility_timer.0.reset();
+            info!("Health: {}", stats.health);
+        }
     }
-
-    println!("{}", stats.health);
 }
 
 pub struct PlayerStatsPlugin;
 
 impl Plugin for PlayerStatsPlugin {
     fn build(&self, app: &mut App) {
-        app.insert_resource(InvincibilityTimer(Timer::from_seconds(
-            PLAYER_INVINCIBILITY_TIME,
-            TimerMode::Once,
-        )))
-        .add_systems(Update, set_player_default_stats)
-        .add_systems(Update, player_invincibility_timer);
+        app.add_event::<ChangeHealth>()
+            .insert_resource(InvincibilityTimer(Timer::from_seconds(
+                PLAYER_INVINCIBILITY_TIME,
+                TimerMode::Once,
+            )))
+            .add_systems(Update, player_damage)
+            .add_systems(Update, player_invincibility_timer);
     }
 }

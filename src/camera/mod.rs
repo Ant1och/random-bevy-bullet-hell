@@ -12,13 +12,15 @@ pub struct Target(Vec2);
 
 #[derive(Default, Bundle)]
 pub struct CameraBundle {
-    camera: Camera2d,
+    entity: Camera2d,
+    name: Name,
     target: Target,
     msaa: Msaa,
 }
 
 fn spawn_camera(mut cmd: Commands) {
     cmd.spawn(CameraBundle {
+        name: Name::new("Camera"),
         // Texture bleeding fix
         msaa: Msaa::Off,
         ..default()

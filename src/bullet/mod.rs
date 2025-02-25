@@ -1,6 +1,6 @@
 use crate::physics::movement::MovementType;
-use crate::physics::Acceleration;
-use crate::player::stats::player_damage;
+use crate::physics::{Acceleration, DespawnOutOfBounds};
+use crate::player::stats::ChangeHealth;
 use crate::{colliders::SensorBundle, player::Player};
 use bevy::prelude::*;
 use bevy_aseprite_ultra::prelude::*;
@@ -10,7 +10,8 @@ pub mod config;
 
 mod animation;
 use animation::BulletAnimationPlugin;
-use bevy_rapier2d::prelude::{CollisionEvent, Velocity};
+use bevy_rapier2d::plugin::ReadRapierContext;
+use bevy_rapier2d::prelude::Velocity;
 
 // mod physics;
 // use physics::BulletPhysicsPlugin;
@@ -40,20 +41,26 @@ pub struct BulletBundle {
     pub transform: Transform,
     #[from_entity_instance]
     pub entity_instance: EntityInstance,
+    pub auto_despawn: DespawnOutOfBounds,
 }
 
 fn bullet_player_collision(
-    mut collision_events: EventReader<CollisionEvent>,
-    player_query: Query<Has<Player>>,
-    bullet_query: Query<Has<Bullet>>,
-) -> bool {
-    collision_events.read().any(|event| match event {
-        CollisionEvent::Started(e1, e2, _) => {
-            (player_query.contains(*e1) || player_query.contains(*e2))
-                && (bullet_query.contains(*e1) || bullet_query.contains(*e2))
-        }
-        _ => false,
-    })
+    rapier_context: ReadRapierContext,
+    player_query: Query<Entity, With<Player>>,
+    bullet_query: Query<Entity, With<Bullet>>,
+    mut health_event: EventWriter<ChangeHealth>,
+) {
+    let context = rapier_context.single();
+    let Ok(player) = player_query.get_single() else {
+        return;
+    };
+
+    if bullet_query
+        .iter()
+        .any(|bullet| context.intersection_pair(bullet, player) == Some(true))
+    {
+        health_event.send(ChangeHealth(-1));
+    }
 }
 
 pub struct BulletPlugin;
@@ -63,8 +70,7 @@ impl Plugin for BulletPlugin {
         app.register_ldtk_entity::<BulletBundle>("Bullet")
             // app
             // .add_plugins(BulletPhysicsPlugin)
-            // .add_systems(Update, bullet_player_collision)
-            .add_systems(Update, player_damage.run_if(bullet_player_collision))
+            .add_systems(Update, bullet_player_collision)
             .add_plugins(BulletAnimationPlugin);
     }
 }
