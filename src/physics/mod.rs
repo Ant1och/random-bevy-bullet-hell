@@ -22,11 +22,11 @@ impl Acceleration {
 }
 
 #[derive(Component, Default)]
-pub struct DespawnOutOfBounds;
+pub struct DespawnIfOutOfBounds;
 
 fn despawn_out_of_bounds(
     levels: Query<(&LevelIid, &Transform)>,
-    entities: Query<(Entity, &GlobalTransform), With<DespawnOutOfBounds>>,
+    entities: Query<(Entity, &GlobalTransform), With<DespawnIfOutOfBounds>>,
     level_selection: Res<LevelSelection>,
     ldtk_project_assets: Res<Assets<LdtkProject>>,
     ldtk_projects: Query<&LdtkProjectHandle>,
@@ -76,6 +76,21 @@ fn despawn_out_of_bounds(
     }
 }
 
+#[derive(Component, Default)]
+pub struct DespawnIfNoChildren;
+
+pub fn despawn_no_children(
+    entities: Query<(Entity, &Children), With<DespawnIfNoChildren>>,
+
+    mut cmd: Commands,
+) {
+    for (entity, children) in entities.iter() {
+        if children.is_empty() {
+            cmd.entity(entity).despawn();
+        }
+    }
+}
+
 fn physics_acceleration(
     mut query: Query<(&mut Velocity, &Acceleration), Without<RigidBodyDisabled>>,
     time: Res<Time>,
@@ -92,6 +107,7 @@ impl Plugin for PhysicsPlugin {
     fn build(&self, app: &mut App) {
         app.add_plugins(MovementTypePlugin)
             .add_systems(Update, physics_acceleration)
+            .add_systems(Update, despawn_no_children)
             .add_systems(Update, despawn_out_of_bounds);
     }
 }

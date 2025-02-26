@@ -1,7 +1,7 @@
 use crate::bullet::BulletBundle;
 use crate::colliders::SensorBundle;
 use crate::physics::movement::MovementType;
-use crate::physics::Acceleration;
+use crate::physics::{despawn_no_children, Acceleration, DespawnIfNoChildren};
 use bevy::prelude::*;
 use bevy_aseprite_ultra::prelude::*;
 use bevy_ecs_ldtk::prelude::*;
@@ -51,6 +51,7 @@ pub struct PatternBundle {
     #[from_entity_instance]
     pub entity_instance: EntityInstance,
     pub disabled: RigidBodyDisabled,
+    pub despawn_if_no_children: DespawnIfNoChildren,
 }
 
 impl PatternParams {
@@ -220,7 +221,7 @@ impl Plugin for PatternPlugin {
     fn build(&self, app: &mut App) {
         app.register_ldtk_entity::<PatternBundle>("Pattern")
             .add_systems(Update, construction_timer)
-            .add_systems(Update, (construction, finish_construction).chain())
+            .add_systems(Update, (construction, finish_construction).chain().after(despawn_no_children))
         // .add_systems(Update, bullet_acceleration)
         ;
     }

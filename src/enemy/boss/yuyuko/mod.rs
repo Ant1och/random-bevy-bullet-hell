@@ -70,7 +70,6 @@ impl Yuyuko {
         let length = Duration::from_secs_f64(100.);
 
         CirclesOfFifthBundle::new(frequency, length)
-        // CirclesOfFifthBundle::default()
     }
 }
 

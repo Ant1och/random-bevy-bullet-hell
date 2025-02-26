@@ -1,5 +1,5 @@
 use crate::physics::movement::MovementType;
-use crate::physics::{Acceleration, DespawnOutOfBounds};
+use crate::physics::{Acceleration, DespawnIfOutOfBounds};
 use crate::player::stats::ChangeHealth;
 use crate::{colliders::SensorBundle, player::Player};
 use bevy::prelude::*;
@@ -41,7 +41,7 @@ pub struct BulletBundle {
     pub transform: Transform,
     #[from_entity_instance]
     pub entity_instance: EntityInstance,
-    pub auto_despawn: DespawnOutOfBounds,
+    pub auto_despawn: DespawnIfOutOfBounds,
 }
 
 fn bullet_player_collision(
