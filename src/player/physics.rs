@@ -11,7 +11,7 @@ use bevy_rapier2d::prelude::*;
 
 use crate::player::config::physics::*;
 
-fn dash(velocity: &mut Mut<'_, Velocity>, looking_direction: &LookDir, direction: Vec2) {
+fn dash(looking_direction: &LookDir, direction: &Vec2) -> Vec2 {
     let dash_direction_x = match direction.y {
         0. => looking_direction.into(),
         _ => direction.x,
@@ -23,7 +23,7 @@ fn dash(velocity: &mut Mut<'_, Velocity>, looking_direction: &LookDir, direction
         y: dash_direction_y / dash_direction_y.hypot(dash_direction_x),
     };
 
-    velocity.linvel = dash_vel * PLAYER_DASH_STRENGTH;
+    dash_vel * PLAYER_DASH_STRENGTH
 }
 
 fn player_dash(
@@ -40,7 +40,7 @@ fn player_dash(
     };
 
     if keys.just_pressed(KeyType::Dash) {
-        dash(&mut velocity, &looking_direction.0, direction.0);
+        velocity.linvel = dash(&looking_direction.0, &direction.0);
 
         dash_timer.0.reset();
     }
@@ -168,6 +168,36 @@ impl Plugin for PlayerPhysicsPlugin {
                 player_autostep,
                 player_decelleration,
             ),
+        );
+    }
+}
+
+#[test]
+fn dash_direction() {
+    const PRECCISION: f32 = 1000000.;
+    const DIRECTIONS: &[Vec2] = &[
+        Vec2::new(1., 1.),
+        Vec2::new(-1., -1.),
+        Vec2::new(0., 1.),
+        Vec2::new(0., -1.),
+        Vec2::new(1., 0.),
+        Vec2::new(-1., 0.),
+        Vec2::new(-1., 1.),
+        Vec2::new(1., -1.),
+    ];
+
+    let dir = Vec2::new(0., 0.);
+    assert_eq!(dash(&LookDir::Left, &dir).normalize_or_zero(), Vec2::NEG_X);
+    assert_eq!(dash(&LookDir::Right, &dir).normalize_or_zero(), Vec2::X);
+
+    for dir in DIRECTIONS {
+        assert_eq!(
+            (dash(&LookDir::Right, &dir).normalize_or_zero() * PRECCISION).round(),
+            (dir.normalize_or_zero() * PRECCISION).round()
+        );
+        assert_eq!(
+            (dash(&LookDir::Left, &dir).normalize_or_zero() * PRECCISION).round(),
+            (dir.normalize_or_zero() * PRECCISION).round()
         );
     }
 }
