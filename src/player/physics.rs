@@ -11,27 +11,44 @@ use bevy_rapier2d::prelude::*;
 
 use crate::player::config::physics::*;
 
+use super::stats::PlayerStats;
+
+#[derive(Event, Default)]
+pub struct Dash;
+
 fn dash(looking_direction: &LookDir, direction: &Vec2) -> Vec2 {
-    let dash_direction_x = match direction.y {
-        0. => looking_direction.into(),
-        _ => direction.x,
-    };
-    let dash_direction_y = direction.y;
-
-    let dash_vel = Vec2 {
-        x: dash_direction_x / dash_direction_x.hypot(dash_direction_y),
-        y: dash_direction_y / dash_direction_y.hypot(dash_direction_x),
+    let dash_direction = match direction {
+        &Vec2::ZERO => looking_direction.into(),
+        _ => direction.normalize_or_zero(),
     };
 
-    dash_vel * PLAYER_DASH_STRENGTH
+    dash_direction * PLAYER_DASH_STRENGTH
+    //     x: dash_direction_x / dash_direction_x.hypot(dash_direction_y),
+    //     y: dash_direction_y / dash_direction_y.hypot(dash_direction_x),
+    // };
+    // let dash_direction_x = match direction.y {
+    //     0. => looking_direction.into(),
+    //     _ => direction.x,
+    // };
+    // let dash_direction_y = direction.y;
+
+    // let dash_vel = Vec2 {
+    //     x: dash_direction_x / dash_direction_x.hypot(dash_direction_y),
+    //     y: dash_direction_y / dash_direction_y.hypot(dash_direction_x),
+    // };
+
+    // dash_vel * PLAYER_DASH_STRENGTH
 }
 
 fn player_dash(
-    mut player: Query<(&LookingDirection, &mut Velocity), With<Player>>,
+    mut player: Query<(&LookingDirection, &PlayerStats, &mut Velocity), With<Player>>,
     input: Query<(&Direction, &KeysPressed), With<CustomInput>>,
+    mut event_writer: EventWriter<Dash>,
     mut dash_timer: ResMut<DashTimer>,
 ) {
-    let Ok((looking_direction, mut velocity)) = player.get_single_mut() else {
+    let Ok((looking_direction, PlayerStats { stamina, .. }, mut velocity)) =
+        player.get_single_mut()
+    else {
         return;
     };
 
@@ -39,10 +56,11 @@ fn player_dash(
         return;
     };
 
-    if keys.just_pressed(KeyType::Dash) {
+    if *stamina > 0 && keys.just_pressed(KeyType::Dash) {
+        println!("{}", stamina);
         velocity.linvel = dash(&looking_direction.0, &direction.0);
-
         dash_timer.0.reset();
+        event_writer.send(Dash);
     }
 }
 
@@ -154,21 +172,22 @@ pub struct PlayerPhysicsPlugin;
 
 impl Plugin for PlayerPhysicsPlugin {
     fn build(&self, app: &mut App) {
-        app.insert_resource(DashTimer(Timer::from_seconds(
-            PLAYER_DASH_BUFFER,
-            TimerMode::Once,
-        )))
-        .add_systems(
-            Update,
-            (
-                player_jump,
-                (player_dash, player_gravity).chain(),
-                player_horizontal_movement,
-                player_looking_direction,
-                player_autostep,
-                player_decelleration,
-            ),
-        );
+        app.add_event::<Dash>()
+            .insert_resource(DashTimer(Timer::from_seconds(
+                PLAYER_DASH_BUFFER,
+                TimerMode::Once,
+            )))
+            .add_systems(
+                Update,
+                (
+                    player_jump,
+                    (player_dash, player_gravity).chain(),
+                    player_horizontal_movement,
+                    player_looking_direction,
+                    player_autostep,
+                    player_decelleration,
+                ),
+            );
     }
 }
 

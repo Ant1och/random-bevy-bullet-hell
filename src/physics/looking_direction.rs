@@ -1,3 +1,4 @@
+use bevy::math::Vec2;
 use LookDir::*;
 
 #[derive(Default)]
@@ -5,6 +6,15 @@ pub enum LookDir {
     #[default]
     Right,
     Left,
+}
+
+impl From<&LookDir> for Vec2 {
+    fn from(val: &LookDir) -> Vec2 {
+        match val {
+            Right => Vec2::X,
+            Left => Vec2::NEG_X,
+        }
+    }
 }
 
 impl From<&LookDir> for f32 {

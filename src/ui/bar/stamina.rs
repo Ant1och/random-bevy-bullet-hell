@@ -2,24 +2,24 @@ use bevy::prelude::*;
 
 use crate::player::{
     config::stats::PLAYER_HEALTH,
-    stats::{ChangeHealth, PlayerStats},
+    stats::{ChangeStamina, PlayerStats},
     Player,
 };
 
 #[derive(Component, Default)]
-pub struct HealthBar;
+pub struct StaminaBar;
 
 #[derive(Bundle, Default)]
-pub struct HealthBarBundle {
-    pub entity: HealthBar,
+pub struct StaminaBarBundle {
+    pub entity: StaminaBar,
     pub transform: Transform,
     pub color: BackgroundColor,
     pub node: Node,
     pub text: Text,
 }
 
-fn spawn_health_bar(mut cmd: Commands) {
-    cmd.spawn(HealthBarBundle {
+fn spawn(mut cmd: Commands) {
+    cmd.spawn(StaminaBarBundle {
         node: Node {
             width: Val::Px(27.0),
             height: Val::Px(23.0),
@@ -27,7 +27,7 @@ fn spawn_health_bar(mut cmd: Commands) {
             flex_direction: FlexDirection::Column,
             justify_content: JustifyContent::Center,
             padding: UiRect::all(Val::Px(8.0)),
-            margin: UiRect::px(10.0, 10.0, 10.0, 0.0),
+            margin: UiRect::px(100.0, 10.0, 10.0, 0.0),
 
             ..default()
         },
@@ -37,29 +37,28 @@ fn spawn_health_bar(mut cmd: Commands) {
     });
 }
 
-fn update_health_bar(
-    mut health_bars: Query<&mut Text, With<HealthBar>>,
-    health_events: EventReader<ChangeHealth>,
+fn update(
+    mut stamina_bars: Query<&mut Text, With<StaminaBar>>,
+    stamina_events: EventReader<ChangeStamina>,
     player: Query<&PlayerStats, With<Player>>,
 ) {
-    if health_events.is_empty() {
+    if stamina_events.is_empty() {
         return;
     };
 
-    let Ok(PlayerStats { health, .. }) = player.get_single() else {
+    let Ok(PlayerStats { stamina, .. }) = player.get_single() else {
         return;
     };
 
-    for mut text in &mut health_bars {
-        **text = health.to_string();
+    for mut text in &mut stamina_bars {
+        **text = stamina.to_string();
     }
 }
 
-pub struct HealthBarPlugin;
+pub struct StaminaBarPlugin;
 
-impl Plugin for HealthBarPlugin {
+impl Plugin for StaminaBarPlugin {
     fn build(&self, app: &mut App) {
-        app.add_systems(Startup, spawn_health_bar)
-            .add_systems(Update, update_health_bar);
+        app.add_systems(Startup, spawn).add_systems(Update, update);
     }
 }

@@ -1,2 +1,4 @@
 pub const PLAYER_HEALTH: i64 = 10;
+pub const PLAYER_STAMINA: i64 = 3;
+pub const PLAYER_STAMINA_REGEN_TIME: f32 = 0.8;
 pub const PLAYER_INVINCIBILITY_TIME: f32 = 0.45;
