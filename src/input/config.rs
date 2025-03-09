@@ -8,6 +8,8 @@ pub enum KeyType {
     Left,
     Dash,
     Jump,
+    #[cfg(debug_assertions)]
+    GuiDebugToggle,
 }
 
 use KeyType::*;
@@ -38,4 +40,5 @@ pub const KEY_MAP: &[(KeyType, &[KeyCode], &[GamepadButton])] = &[
         &[KeyCode::KeyA, KeyCode::ArrowLeft],
         &[GamepadButton::DPadLeft],
     ),
+    (GuiDebugToggle, &[KeyCode::F6], &[]),
 ];

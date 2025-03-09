@@ -2,24 +2,24 @@ use bevy::prelude::*;
 
 use crate::player::{
     config::stats::PLAYER_HEALTH,
-    stats::{ChangeStamina, PlayerStats},
+    stats::{ChangeHealth, PlayerStats},
     Player,
 };
 
 #[derive(Component, Default)]
-pub struct StaminaBar;
+pub struct HealthBar;
 
 #[derive(Bundle, Default)]
-pub struct StaminaBarBundle {
-    pub entity: StaminaBar,
+pub struct HealthBarBundle {
+    pub entity: HealthBar,
     pub transform: Transform,
     pub color: BackgroundColor,
     pub node: Node,
     pub text: Text,
 }
 
-fn spawn(mut cmd: Commands) {
-    cmd.spawn(StaminaBarBundle {
+fn spawn_health_bar(mut cmd: Commands) {
+    cmd.spawn(HealthBarBundle {
         node: Node {
             width: Val::Px(27.0),
             height: Val::Px(23.0),
@@ -27,7 +27,7 @@ fn spawn(mut cmd: Commands) {
             flex_direction: FlexDirection::Column,
             justify_content: JustifyContent::Center,
             padding: UiRect::all(Val::Px(8.0)),
-            margin: UiRect::px(100.0, 10.0, 10.0, 0.0),
+            margin: UiRect::px(10.0, 10.0, 10.0, 0.0),
 
             ..default()
         },
@@ -37,28 +37,29 @@ fn spawn(mut cmd: Commands) {
     });
 }
 
-fn update(
-    mut stamina_bars: Query<&mut Text, With<StaminaBar>>,
-    stamina_events: EventReader<ChangeStamina>,
+fn update_health_bar(
+    mut health_bars: Query<&mut Text, With<HealthBar>>,
+    health_events: EventReader<ChangeHealth>,
     player: Query<&PlayerStats, With<Player>>,
 ) {
-    if stamina_events.is_empty() {
+    if health_events.is_empty() {
         return;
     };
 
-    let Ok(PlayerStats { stamina, .. }) = player.get_single() else {
+    let Ok(PlayerStats { health, .. }) = player.get_single() else {
         return;
     };
 
-    for mut text in &mut stamina_bars {
-        **text = stamina.to_string();
+    for mut text in &mut health_bars {
+        **text = health.to_string();
     }
 }
 
-pub struct StaminaBarPlugin;
+pub struct HealthBarPlugin;
 
-impl Plugin for StaminaBarPlugin {
+impl Plugin for HealthBarPlugin {
     fn build(&self, app: &mut App) {
-        app.add_systems(Startup, spawn).add_systems(Update, update);
+        // app.add_systems(Startup, spawn_health_bar)
+        app.add_systems(Update, update_health_bar);
     }
 }
