@@ -30,3 +30,8 @@ pub fn move_toward_exp_vec2(from: Vec2, to: Vec2, easing: f64, min_speed: f64, d
     let distance = from.distance(to) as f64;
     move_toward_vec2(from, to, (easing * distance).exp().max(min_speed) * delta)
 }
+
+pub fn move_toward_exp_f32(from: f32, to: f32, easing: f64, min_speed: f64, delta: f64) -> f32 {
+    let distance = (from - to).abs() as f64;
+    move_toward_f32(from, to, (easing * distance).exp().max(min_speed) * delta)
+}

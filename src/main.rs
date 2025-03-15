@@ -52,7 +52,7 @@ fn main() {
             ),
         ))
         .add_systems(PreStartup, spawn_context.before(PhysicsSet::SyncBackend))
-        .insert_resource(LevelSelection::Uid(0))
+        .insert_resource(LevelSelection::iid("7b660fe0-e920-11ef-8441-3da15693e03d"))
         .insert_resource(LdtkSettings {
             level_spawn_behavior: LevelSpawnBehavior::UseWorldTranslation {
                 load_level_neighbors: true,

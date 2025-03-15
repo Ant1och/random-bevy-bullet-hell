@@ -46,3 +46,36 @@ impl ConstructionType {
         }
     }
 }
+
+fn get_pattern_points(pattern: Vec<Vec<&str>>) -> Vec<IVec2> {
+    todo!()
+}
+
+fn extrapolate(points: Vec<IVec2>) -> Vec<IVec2> {
+    todo!()
+}
+
+#[test]
+fn construction_extrapolation() {
+    let pattern = get_pattern_points(vec![
+        vec!["*", " ", " ", " ", " ", " ", "*"],
+        vec![" ", " ", " ", " ", " ", " ", " "],
+        vec![" ", " ", " ", " ", " ", " ", " "],
+        vec![" ", " ", " ", " ", " ", " ", " "],
+        vec![" ", " ", " ", " ", " ", " ", " "],
+        vec![" ", " ", " ", " ", " ", " ", " "],
+        vec!["*", " ", " ", " ", " ", " ", "*"],
+    ]);
+
+    let res_pattern = get_pattern_points(vec![
+        vec!["*", " ", " ", "*", " ", " ", "*"],
+        vec![" ", " ", " ", " ", " ", " ", " "],
+        vec![" ", " ", " ", " ", " ", " ", " "],
+        vec!["*", " ", " ", " ", " ", " ", "*"],
+        vec![" ", " ", " ", " ", " ", " ", " "],
+        vec![" ", " ", " ", " ", " ", " ", " "],
+        vec!["*", " ", " ", "*", " ", " ", "*"],
+    ]);
+
+    assert_eq!(extrapolate(pattern), res_pattern);
+}

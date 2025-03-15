@@ -6,7 +6,7 @@ pub const PLAYER_DASH_STRENGTH: f32 = 700.;
 pub const PLAYER_AUTOSTEP_AMOUNT: f32 = 0.007;
 
 // Use with deltatime
-pub const PLAYER_GRAVITY: f64 = 800.;
+pub const PLAYER_GRAVITY: f64 = 830.;
 // 13.
 pub const PLAYER_DECELLERATION: f64 = 150.;
 pub const PLAYER_ACELLERATION: f64 = 4300.;
