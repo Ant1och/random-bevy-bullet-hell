@@ -1,5 +1,4 @@
 use bevy::prelude::*;
-use bevy_aseprite_ultra::prelude::*;
 use bevy_ecs_ldtk::prelude::*;
 use std::time::Duration;
 
@@ -36,36 +35,26 @@ impl TurretAmmoList {
 #[derive(Bundle, Default, LdtkEntity)]
 pub struct TurretBundle {
     pub name: Name,
-    pub sprite: Sprite,
-    pub animation: AseSpriteAnimation,
     pub entity: Turret,
     // #[worldly]
     // pub worldly: Worldly,
     #[from_entity_instance]
     pub entity_instance: EntityInstance,
     pub ammo: TurretAmmoList,
+    pub transform: Transform,
     pub shoot_timer: ShootTimer,
 }
 
 impl TurretBundle {
-    pub fn from_params(ammo: TurretAmmoList, frequency: Duration) -> Self {
+    pub fn from_params(ammo: TurretAmmoList, delay: Duration, phase: Duration) -> Self {
         TurretBundle {
             name: Name::from("Turret"),
             ammo,
-            shoot_timer: ShootTimer::from_duration(frequency),
+            shoot_timer: ShootTimer::from_duration(delay, phase),
             ..default()
         }
     }
 }
-
-// pub fn circle_of_fifth_setup(
-//     mut spell_card: Query<(&mut ShootTimer, &TurretParams), Added<Turret>>,
-// ) {
-//     for (mut shoot_timer, params) in &mut spell_card {
-//         shoot_timer.0.set_mode(TimerMode::Repeating);
-//         shoot_timer.0.set_duration(params.frequency);
-//     }
-// }
 
 fn turret_shoot(
     player: Query<&Transform, With<Player>>,
@@ -117,35 +106,6 @@ fn turret_shoot(
         }
     }
 }
-
-// pub fn cof_setup_TurretAmmoList_after_construction(
-//     player: Query<&Transform, With<Player>>,
-//     children: Query<&Children>,
-//     mut spell_cards: Query<(&GlobalTransform, Entity), With<Turret>>,
-//     mut pattern_query: Query<
-//         (&CirclePatternConstruction, &mut Velocity, &mut Acceleration),
-//         With<CirclePattern>,
-//     >,
-// ) {
-//     let Ok(player_position) = player.get_single() else {
-//         return;
-//     };
-//     let player_position = player_position.translation.truncate();
-
-//     for (transform, spell_card) in &mut spell_cards {
-//         for circle in children.children(spell_card) {
-//             let Ok((construction, mut velocity, mut accel)) = pattern_query.get_mut(*circle) else {
-//                 return;
-//             };
-//             let spell_position = transform.translation().truncate();
-
-//             if !construction.finished {
-//                 velocity.linvel = player_position - spell_position;
-//                 accel.0 = (player_position - spell_position) / 1000.;
-//             }
-//         }
-//     }
-// }
 
 pub struct TurretPlugin;
 

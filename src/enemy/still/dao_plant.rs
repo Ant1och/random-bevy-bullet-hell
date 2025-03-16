@@ -26,8 +26,8 @@ pub struct DaoPlantBundle {
     pub entity_instance: EntityInstance,
 }
 
-fn setup(plants: Query<Entity, Added<DaoPlant>>, mut cmd: Commands) {
-    for plant in &plants {
+fn setup(plants: Query<(Entity, &EntityInstance), Added<DaoPlant>>, mut cmd: Commands) {
+    for (plant, ldtk_entity) in &plants {
         let ammo = TurretAmmoList::new(vec![TurretAmmo {
             params: PatternParams {
                 scale: 0.,
@@ -36,12 +36,26 @@ fn setup(plants: Query<Entity, Added<DaoPlant>>, mut cmd: Commands) {
                 construction_frequency: Duration::from_secs_f64(0.),
             },
             construction: ConstructionType::Circle,
-            speed: 300.,
-            accel: 0.01,
+            speed: *ldtk_entity
+                .get_float_field("bullet_speed")
+                .expect("DaoPlant should have bullet_speed field"),
+            accel: *ldtk_entity
+                .get_float_field("bullet_accel")
+                .expect("DaoPlant should have bullet_accel field"),
         }]);
 
-        cmd.spawn(TurretBundle::from_params(ammo, Duration::from_secs_f64(2.)))
-            .set_parent(plant);
+        let shoot_delay = *ldtk_entity
+            .get_float_field("shoot_delay")
+            .expect("DaoPlant should have shoot_delay field");
+        let shoot_phase = *ldtk_entity
+            .get_float_field("shoot_phase")
+            .expect("DaoPlant should have shoot_offset field");
+        cmd.spawn(TurretBundle::from_params(
+            ammo,
+            Duration::from_secs_f32(shoot_delay),
+            Duration::from_secs_f32(shoot_phase),
+        ))
+        .set_parent(plant);
     }
 }
 

@@ -1,33 +1,38 @@
 use bevy::prelude::*;
+use bevy::render::camera::ScalingMode;
 use bevy_ecs_ldtk::prelude::*;
 
+use crate::physics::IsOutOfBounds;
 use crate::player::Player;
-use crate::shared::move_toward_exp_f32;
+use crate::shared::{
+    move_toward_exp_f32, move_toward_quad_f32, move_toward_sigmoid_f32, move_toward_sin_in_f32,
+};
 
 mod config;
 use crate::camera::config::*;
 use crate::world::update_level_selection;
-
 const CAMERA_VERTICAL_STEP: f32 = 200.;
 
 #[derive(Default, Component)]
 pub struct Target(Vec2);
 
-#[derive(Default, Bundle)]
-pub struct CameraBundle {
-    entity: Camera2d,
-    name: Name,
-    target: Target,
-    msaa: Msaa,
-}
-
 fn spawn_camera(mut cmd: Commands) {
-    cmd.spawn(CameraBundle {
-        name: Name::new("Camera"),
+    cmd.spawn((
+        Camera2d,
+        Name::new("Camera"),
         // Texture bleeding fix
-        msaa: Msaa::Off,
-        ..default()
-    });
+        Msaa::Off,
+        Target(Vec2::ZERO),
+        IsOutOfBounds::default(),
+        OrthographicProjection {
+            viewport_origin: Vec2::new(0.5, 0.5),
+            near: 0.0,
+            far: 1200.,
+            scaling_mode: ScalingMode::WindowSize,
+            scale: 1.0,
+            area: Rect::EMPTY,
+        },
+    ));
 }
 
 #[allow(clippy::type_complexity)]
@@ -54,7 +59,6 @@ pub fn camera_fit_inside_current_level(
 
         let (mut orthographic_projection, mut target) = camera_query.single_mut();
 
-        println!("a");
         for (level_transform, level_iid) in &level_query {
             let ldtk_project = ldtk_project_assets
                 .get(ldtk_projects.single())
@@ -77,18 +81,21 @@ pub fn camera_fit_inside_current_level(
                 } else {
                     height = width / ASPECT_RATIO;
                 }
-
                 orthographic_projection.scaling_mode =
                     bevy::render::camera::ScalingMode::Fixed { width, height };
-
+                orthographic_projection.viewport_origin = Vec2::new(0.5, 0.5);
                 let discrete_player_translation_y =
                     (player_translation.y / CAMERA_VERTICAL_STEP).round() * CAMERA_VERTICAL_STEP;
 
                 target.0 = Vec2::new(
-                    (player_translation.x - level_transform.translation.x - width / 2.)
-                        .clamp(0., (level.px_wid as f32 - width).max(0.)),
-                    (discrete_player_translation_y - level_transform.translation.y - height / 2.)
-                        .clamp(0., (level.px_hei as f32 - height).max(0.)),
+                    (player_translation.x - level_transform.translation.x).clamp(
+                        width / 2.,
+                        (level.px_wid as f32 - width / 2.).max(width / 2.),
+                    ),
+                    (discrete_player_translation_y - level_transform.translation.y).clamp(
+                        height / 2.,
+                        (level.px_hei as f32 - height / 2.).max(height / 2.),
+                    ),
                 );
 
                 target.0.x += level_transform.translation.x;
@@ -99,13 +106,18 @@ pub fn camera_fit_inside_current_level(
 }
 
 fn camera_move_to_target(
-    mut camera: Query<(&mut Transform, &Target), With<Camera2d>>,
+    mut camera: Query<(&mut Transform, &Target, &IsOutOfBounds), With<Camera2d>>,
     time: Res<Time>,
 ) {
     let delta = time.delta_secs_f64();
-    let Ok((mut transform, target)) = camera.get_single_mut() else {
+    let Ok((mut transform, target, out_of_bounds)) = camera.get_single_mut() else {
         return;
     };
+
+    if out_of_bounds.0 {
+        transform.translation = target.0.extend(0.);
+        return;
+    }
 
     transform.translation.x = move_toward_exp_f32(
         transform.translation.x,
@@ -115,12 +127,12 @@ fn camera_move_to_target(
         delta * CAMERA_BASE_SPEED,
     );
 
-    transform.translation.y = move_toward_exp_f32(
+    transform.translation.y = move_toward_quad_f32(
         transform.translation.y,
         target.0.y,
-        0.008,
-        0.02,
-        delta * 240.5,
+        0.011,
+        2.25,
+        delta * 80.5,
     );
 }
 

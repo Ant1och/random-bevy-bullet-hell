@@ -12,8 +12,10 @@ pub mod still;
 pub struct ShootTimer(Timer);
 
 impl ShootTimer {
-    fn from_duration(duration: Duration) -> Self {
-        ShootTimer(Timer::new(duration, TimerMode::Repeating))
+    fn from_duration(duration: Duration, phase: Duration) -> Self {
+        let mut timer = Timer::new(duration, TimerMode::Repeating);
+        timer.set_elapsed(phase);
+        ShootTimer(timer)
     }
 }
 

@@ -8,18 +8,18 @@
     };
   };
 
-  outputs = { self, nixpkgs, fenix, utils, ...} @ inputs:
+  outputs = { self, utils, ...} @ inputs:
     utils.lib.eachDefaultSystem (
       system:
       let
-        pkgs = import nixpkgs {
+        pkgs = import inputs.nixpkgs {
           inherit system;
-          overlays = [ fenix.overlays.default ];
+          overlays = [ inputs.fenix.overlays.default ];
         };
       in
       {
-        packages.x86_64-linux.default = fenix.packages.x86_64-linux.minimal.toolchain;
-        nixpkgs.overlays = [ fenix.overlays.default ];
+        packages.x86_64-linux.default = inputs.fenix.packages.x86_64-linux.minimal.toolchain;
+        nixpkgs.overlays = [ inputs.fenix.overlays.default ];
         devShells.default = import ./shell.nix { inherit pkgs; };
       }
     );

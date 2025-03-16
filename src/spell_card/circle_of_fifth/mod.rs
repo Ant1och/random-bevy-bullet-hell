@@ -91,6 +91,7 @@ fn circle_of_fifth_setup(
         cmd.spawn(TurretBundle::from_params(
             ammo_list.clone(),
             params.frequency,
+            Duration::ZERO,
         ))
         .set_parent(card);
     }

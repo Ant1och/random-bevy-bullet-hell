@@ -21,16 +21,24 @@ impl Acceleration {
     }
 }
 
+#[derive(Component)]
+pub struct IsOutOfBounds(pub bool);
+
+impl Default for IsOutOfBounds {
+    fn default() -> Self {
+        IsOutOfBounds(false)
+    }
+}
+
 #[derive(Component, Default)]
 pub struct DespawnIfOutOfBounds;
 
-fn despawn_out_of_bounds(
+fn update_out_of_bounds(
     levels: Query<(&LevelIid, &Transform)>,
-    entities: Query<(Entity, &GlobalTransform), With<DespawnIfOutOfBounds>>,
+    mut entities: Query<(&GlobalTransform, &mut IsOutOfBounds)>,
     level_selection: Res<LevelSelection>,
     ldtk_project_assets: Res<Assets<LdtkProject>>,
     ldtk_projects: Query<&LdtkProjectHandle>,
-    mut cmd: Commands,
 ) {
     let mut bounds: Option<Rect> = None;
     for (level_iid, level_transform) in &levels {
@@ -56,7 +64,6 @@ fn despawn_out_of_bounds(
             ),
         });
     }
-
     let bounds = match bounds {
         Some(val) => val,
         None => {
@@ -68,9 +75,27 @@ fn despawn_out_of_bounds(
         pos.x > bounds.max.x || pos.y > bounds.max.y || pos.x < bounds.min.x || pos.y < bounds.min.y
     };
 
-    for (entity, entity_tranform) in &entities {
+    for (entity_tranform, mut is_out_of_bounds) in &mut entities {
         let entity_pos = entity_tranform.translation().truncate();
-        if out_of_bounds(entity_pos) {
+        is_out_of_bounds.0 = out_of_bounds(entity_pos);
+    }
+}
+
+fn add_out_of_bounds(
+    entities: Query<Entity, (With<DespawnIfOutOfBounds>, Without<IsOutOfBounds>)>,
+    mut cmd: Commands,
+) {
+    for entity in &entities {
+        cmd.entity(entity).insert(IsOutOfBounds::default());
+    }
+}
+
+fn despawn_out_of_bounds(
+    entities: Query<(Entity, &IsOutOfBounds), With<DespawnIfOutOfBounds>>,
+    mut cmd: Commands,
+) {
+    for (entity, out_of_bounds) in &entities {
+        if out_of_bounds.0 {
             cmd.entity(entity).despawn_recursive();
         }
     }
@@ -107,6 +132,8 @@ impl Plugin for PhysicsPlugin {
     fn build(&self, app: &mut App) {
         app.add_plugins(MovementTypePlugin)
             .add_systems(Update, physics_acceleration)
+            .add_systems(Update, update_out_of_bounds)
+            .add_systems(Update, add_out_of_bounds)
             .add_systems(Update, despawn_no_children)
             .add_systems(Update, despawn_out_of_bounds);
     }
