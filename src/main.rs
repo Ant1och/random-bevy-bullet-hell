@@ -1,4 +1,4 @@
-#![err(clippy::all)]
+#![warn(clippy::all)]
 
 use bevy::prelude::*;
 use bevy_aseprite_ultra::AsepriteUltraPlugin;
