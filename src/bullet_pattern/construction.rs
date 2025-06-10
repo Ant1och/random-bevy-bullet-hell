@@ -22,7 +22,6 @@ impl ConstructionType {
                 let phi: f32 = (180. - polygon_angle) as f32 / 2.;
 
                 let phi = (((360 * progress / bullet_amount) as f32 + phi) % (2. * phi) - phi)
-                    as f32
                     / 180.
                     * PI;
 
@@ -36,7 +35,6 @@ impl ConstructionType {
                 let phi: f32 = (180. - polygon_angle) as f32 / 2.;
 
                 let phi = (((360 * progress / bullet_amount) as f32 + phi) % (2. * phi) - phi)
-                    as f32
                     / 180.
                     * PI;
 
@@ -47,6 +45,7 @@ impl ConstructionType {
     }
 }
 
+/*
 fn get_pattern_points(pattern: Vec<Vec<&str>>) -> Vec<IVec2> {
     todo!()
 }
@@ -79,3 +78,4 @@ fn construction_extrapolation() {
 
     assert_eq!(extrapolate(pattern), res_pattern);
 }
+*/

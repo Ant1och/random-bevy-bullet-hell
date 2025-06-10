@@ -110,7 +110,6 @@ pub fn update_grounded(
 pub fn update_just_grounded(mut ground_detectors: Query<&mut GroundDetection>, time: Res<Time>) {
     let delta = time.delta();
     for mut ground_detection in &mut ground_detectors {
-        // println!("{:?}", ground_detection.just_grounded_timer);
         if ground_detection.grounded {
             ground_detection.just_grounded =
                 !ground_detection.just_grounded_timer.tick(delta).finished();

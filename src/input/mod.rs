@@ -63,7 +63,7 @@ fn input_update_keys(
     buttons: Res<ButtonInput<KeyCode>>,
     gamepads: Query<&Gamepad>,
 ) {
-    let Ok(mut keys) = input.get_single_mut() else {
+    let Ok(mut keys) = input.single_mut() else {
         return;
     };
 
@@ -85,8 +85,7 @@ fn input_update_keys(
             .iter()
             .any(|&key_code| buttons.just_pressed(key_code));
 
-        if gamepad.is_some() {
-            let gamepad = gamepad.unwrap();
+        if let Some(gamepad) = gamepad {
             pressed = pressed
                 || gamepad_codes
                     .iter()
@@ -104,7 +103,7 @@ fn input_update_keys(
 }
 
 pub fn input_direction(mut input: Query<(&mut Direction, &KeysPressed), With<CustomInput>>) {
-    let Ok((mut direction, keys)) = input.get_single_mut() else {
+    let Ok((mut direction, keys)) = input.single_mut() else {
         return;
     };
 

@@ -1,7 +1,7 @@
 use crate::physics::looking_direction::LookDir;
 use crate::{colliders::ColliderBundle, ground_detection::GroundDetection};
 use bevy::prelude::*;
-use bevy_aseprite_ultra::prelude::AseSpriteAnimation;
+use bevy_aseprite_ultra::prelude::AseAnimation;
 use bevy_ecs_ldtk::prelude::*;
 use bevy_rapier2d::prelude::KinematicCharacterController;
 
@@ -17,7 +17,7 @@ use physics::PlayerPhysicsPlugin;
 pub mod stats;
 use stats::{PlayerStats, PlayerStatsPlugin};
 
-#[derive(PartialEq, Debug, Default, Component)]
+#[derive(Debug, Default, Component)]
 pub struct Player;
 
 #[derive(Resource)]
@@ -36,7 +36,7 @@ impl Default for LookingDirection {
 pub struct PlayerBundle {
     #[sprite_sheet(no_grid)]
     pub sprite: Sprite,
-    pub animation: AseSpriteAnimation,
+    pub animation: AseAnimation,
     pub stats: PlayerStats,
     #[from_entity_instance]
     pub collider_bundle: ColliderBundle,

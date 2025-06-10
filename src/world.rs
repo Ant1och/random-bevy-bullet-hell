@@ -10,7 +10,7 @@ pub fn setup(
     asset_server: Res<AssetServer>,
     mut rapier_config: Query<&mut RapierConfiguration>,
 ) {
-    rapier_config.single_mut().gravity = Vec2::new(0., WORLD_GRAVITY);
+    rapier_config.single_mut().unwrap().gravity = Vec2::new(0., WORLD_GRAVITY);
 
     let ldtk_handle = asset_server.load("level.ldtk").into();
     commands.spawn(LdtkWorldBundle {
@@ -29,7 +29,7 @@ pub fn update_level_selection(
 ) {
     for (level_iid, level_transform) in &level_query {
         let ldtk_project = ldtk_project_assets
-            .get(ldtk_projects.single())
+            .get(ldtk_projects.single().unwrap())
             .expect("Project should be loaded if level has spawned");
 
         let level = ldtk_project

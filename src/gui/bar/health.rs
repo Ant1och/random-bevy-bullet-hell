@@ -26,7 +26,7 @@ fn update_health_bar(
         return;
     };
 
-    let Ok(PlayerStats { health, .. }) = player.get_single() else {
+    let Ok(PlayerStats { health, .. }) = player.single() else {
         return;
     };
 

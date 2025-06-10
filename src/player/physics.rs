@@ -46,21 +46,20 @@ fn player_dash(
     mut event_writer: EventWriter<Dash>,
     mut dash_timer: ResMut<DashTimer>,
 ) {
-    let Ok((looking_direction, PlayerStats { stamina, .. }, mut velocity)) =
-        player.get_single_mut()
+    let Ok((looking_direction, PlayerStats { stamina, .. }, mut velocity)) = player.single_mut()
     else {
         return;
     };
 
-    let Ok((direction, keys)) = input.get_single() else {
+    let Ok((direction, keys)) = input.single() else {
         return;
     };
 
     if *stamina > 0 && keys.just_pressed(KeyType::Dash) {
-        println!("{}", stamina);
+        println!("{stamina}");
         velocity.linvel = dash(&looking_direction.0, &direction.0);
         dash_timer.0.reset();
-        event_writer.send(Dash);
+        event_writer.write(Dash);
     }
 }
 
@@ -70,7 +69,7 @@ fn player_gravity(
     mut dash_timer: ResMut<DashTimer>,
 ) {
     let delta = time.delta_secs_f64();
-    let Ok(mut velocity) = player.get_single_mut() else {
+    let Ok(mut velocity) = player.single_mut() else {
         return;
     };
 
@@ -81,13 +80,13 @@ fn player_gravity(
 
 fn player_decelleration(mut player: Query<&mut Velocity, With<Player>>, time: Res<Time>) {
     let delta = time.delta().as_secs_f64();
-    let Ok(mut velocity) = player.get_single_mut() else {
+    let Ok(mut velocity) = player.single_mut() else {
         return;
     };
     let decelleration_x =
-        PLAYER_DECELLERATION * (velocity.linvel.x.abs().powf(0.5) + 1.) as f64 * delta;
+        PLAYER_DECELLERATION * (velocity.linvel.x.abs().sqrt() + 1.) as f64 * delta;
     let decelleration_y =
-        PLAYER_DECELLERATION * (velocity.linvel.y.abs().powf(0.5) + 1.) as f64 * delta;
+        PLAYER_DECELLERATION * (velocity.linvel.y.abs().sqrt() + 1.) as f64 * delta;
     let decelleration_y_down = PLAYER_DECELLERATION / PLAYER_GRAVITY * delta;
 
     velocity.linvel.y = match velocity.linvel.y > 0. {
@@ -102,10 +101,10 @@ fn player_jump(
     mut player: Query<(&mut Velocity, &GroundDetection), With<Player>>,
     input: Query<&KeysPressed, With<CustomInput>>,
 ) {
-    let Ok((mut velocity, ground_detection)) = player.get_single_mut() else {
+    let Ok((mut velocity, ground_detection)) = player.single_mut() else {
         return;
     };
-    let Ok(keys) = input.get_single() else {
+    let Ok(keys) = input.single() else {
         return;
     };
 
@@ -119,10 +118,10 @@ fn player_horizontal_movement(
     time: Res<Time>,
     input: Query<&Direction, With<CustomInput>>,
 ) {
-    let Ok(mut velocity) = player.get_single_mut() else {
+    let Ok(mut velocity) = player.single_mut() else {
         return;
     };
-    let Ok(Direction(direction)) = input.get_single() else {
+    let Ok(Direction(direction)) = input.single() else {
         return;
     };
 
@@ -139,11 +138,11 @@ fn player_looking_direction(
     mut player: Query<&mut LookingDirection, With<Player>>,
     input: Query<&Direction, With<CustomInput>>,
 ) {
-    let Ok(Direction(direction)) = input.get_single() else {
+    let Ok(Direction(direction)) = input.single() else {
         return;
     };
 
-    let Ok(mut looking_direction) = player.get_single_mut() else {
+    let Ok(mut looking_direction) = player.single_mut() else {
         return;
     };
 
@@ -156,10 +155,10 @@ fn player_autostep(
     ground_detection: Query<&GroundDetection, With<Player>>,
     mut controller: Query<&mut KinematicCharacterController>,
 ) {
-    let Ok(mut controller) = controller.get_single_mut() else {
+    let Ok(mut controller) = controller.single_mut() else {
         return;
     };
-    let Ok(ground_detection) = ground_detection.get_single() else {
+    let Ok(ground_detection) = ground_detection.single() else {
         return;
     };
 
@@ -191,6 +190,7 @@ impl Plugin for PlayerPhysicsPlugin {
     }
 }
 
+#[cfg(test)]
 #[test]
 fn dash_direction() {
     const PRECCISION: f32 = 1000000.;
@@ -211,11 +211,11 @@ fn dash_direction() {
 
     for dir in DIRECTIONS {
         assert_eq!(
-            (dash(&LookDir::Right, &dir).normalize_or_zero() * PRECCISION).round(),
+            (dash(&LookDir::Right, dir).normalize_or_zero() * PRECCISION).round(),
             (dir.normalize_or_zero() * PRECCISION).round()
         );
         assert_eq!(
-            (dash(&LookDir::Left, &dir).normalize_or_zero() * PRECCISION).round(),
+            (dash(&LookDir::Left, dir).normalize_or_zero() * PRECCISION).round(),
             (dir.normalize_or_zero() * PRECCISION).round()
         );
     }

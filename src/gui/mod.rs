@@ -54,15 +54,17 @@ fn setup_gui(mut cmd: Commands) {
 pub struct GuiPlugin;
 
 #[cfg(debug_assertions)]
-#[derive(Resource, Default, PartialEq, Debug)]
+#[derive(Resource, Default, Debug, PartialEq)]
 pub enum GuiDebugLevel {
     Full,
     #[default]
     None,
 }
 
+#[cfg(debug_assertions)]
 impl GuiDebugLevel {
     fn next(&mut self) {
+        #[cfg(debug_assertions)]
         use GuiDebugLevel::*;
         *self = match self {
             None => Full,
@@ -78,7 +80,7 @@ fn toggle_gui_debug(
 ) {
     use crate::input::config::KeyType;
 
-    let Ok(keys) = input.get_single() else {
+    let Ok(keys) = input.single() else {
         return;
     };
 

@@ -40,5 +40,6 @@ pub const KEY_MAP: &[(KeyType, &[KeyCode], &[GamepadButton])] = &[
         &[KeyCode::KeyA, KeyCode::ArrowLeft],
         &[GamepadButton::DPadLeft],
     ),
+    #[cfg(debug_assertions)]
     (GuiDebugToggle, &[KeyCode::F6], &[]),
 ];

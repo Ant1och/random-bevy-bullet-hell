@@ -17,7 +17,7 @@ pub struct DaoPlant;
 pub struct DaoPlantBundle {
     pub entity: DaoPlant,
     pub sprite: Sprite,
-    pub animation: AseSpriteAnimation,
+    pub animation: AseAnimation,
     #[from_entity_instance]
     pub sensor_bundle: SensorBundle,
     #[worldly]
@@ -55,14 +55,11 @@ fn setup(plants: Query<(Entity, &EntityInstance), Added<DaoPlant>>, mut cmd: Com
             Duration::from_secs_f32(shoot_delay),
             Duration::from_secs_f32(shoot_phase),
         ))
-        .set_parent(plant);
+        .insert(ChildOf(plant));
     }
 }
 
-fn animation(
-    mut plants: Query<&mut AseSpriteAnimation, Added<DaoPlant>>,
-    server: Res<AssetServer>,
-) {
+fn animation(mut plants: Query<&mut AseAnimation, Added<DaoPlant>>, server: Res<AssetServer>) {
     for mut animation in &mut plants {
         animation.aseprite = server.load("dao_plant.aseprite");
         animation.animation = Animation::tag("idle");

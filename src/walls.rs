@@ -1,6 +1,6 @@
 use std::collections::HashSet;
 
-use bevy::{prelude::*, utils::HashMap};
+use bevy::{platform::collections::HashMap, prelude::*};
 use bevy_ecs_ldtk::prelude::*;
 
 use bevy_rapier2d::prelude::*;
@@ -31,8 +31,8 @@ pub struct WallBundle {
 /// 4. spawn colliders for each rectangle
 pub fn spawn_wall_collision(
     mut commands: Commands,
-    wall_query: Query<(&GridCoords, &Parent), Added<Wall>>,
-    parent_query: Query<&Parent, Without<Wall>>,
+    wall_query: Query<(&GridCoords, &ChildOf), Added<Wall>>,
+    parent_query: Query<&ChildOf, Without<Wall>>,
     level_query: Query<(Entity, &LevelIid)>,
     ldtk_projects: Query<&LdtkProjectHandle>,
     ldtk_project_assets: Res<Assets<LdtkProject>>,
@@ -66,9 +66,9 @@ pub fn spawn_wall_collision(
         // An intgrid tile's direct parent will be a layer entity, not the level entity
         // To get the level entity, you need the tile's grandparent.
         // This is where parent_query comes in.
-        if let Ok(grandparent) = parent_query.get(parent.get()) {
+        if let Ok(grandparent) = parent_query.get(parent.parent()) {
             level_to_wall_locations
-                .entry(grandparent.get())
+                .entry(grandparent.parent())
                 .or_default()
                 .insert(grid_coords);
         }
@@ -78,7 +78,7 @@ pub fn spawn_wall_collision(
         level_query.iter().for_each(|(level_entity, level_iid)| {
             if let Some(level_walls) = level_to_wall_locations.get(&level_entity) {
                 let ldtk_project = ldtk_project_assets
-                    .get(ldtk_projects.single())
+                    .get(ldtk_projects.single().unwrap())
                     .expect("Project should be loaded if level has spawned");
 
                 let level = ldtk_project

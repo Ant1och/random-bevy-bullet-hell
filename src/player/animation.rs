@@ -7,12 +7,12 @@ use bevy_aseprite_ultra::prelude::*;
 
 pub fn player_animation(
     input: Query<&Direction, With<CustomInput>>,
-    mut player: Query<(&mut AseSpriteAnimation, &mut Sprite, &LookingDirection), With<Player>>,
+    mut player: Query<(&mut AseAnimation, &mut Sprite, &LookingDirection), With<Player>>,
 ) {
-    let Ok((mut asesprite, mut sprite, looking_direction)) = player.get_single_mut() else {
+    let Ok((mut asesprite, mut sprite, looking_direction)) = player.single_mut() else {
         return;
     };
-    let direction = match input.get_single() {
+    let direction = match input.single() {
         Ok(val) => val.0,
         Err(_) => Vec2::ZERO,
     };
@@ -38,10 +38,10 @@ pub fn player_animation(
 }
 
 pub fn set_player_sprite(
-    mut player: Query<(&mut AseSpriteAnimation, &mut Transform), Added<Player>>,
+    mut player: Query<(&mut AseAnimation, &mut Transform), Added<Player>>,
     server: Res<AssetServer>,
 ) {
-    let Ok((mut animation, mut transform)) = player.get_single_mut() else {
+    let Ok((mut animation, mut transform)) = player.single_mut() else {
         return;
     };
 
@@ -55,7 +55,7 @@ pub fn set_player_sprite(
 // fn events(mut events: EventReader<AnimationEvents>, mut cmd: Commands) {
 //     for event in events.read() {
 //         match event {
-//             AnimationEvents::Finished(entity) => cmd.entity(*entity).despawn_recursive(),
+//             AnimationEvents::Finished(entity) => cmd.entity(*entity).despawn(),
 //             AnimationEvents::LoopCycleFinished(_entity) => (),
 //         };
 //     }

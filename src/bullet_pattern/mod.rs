@@ -34,7 +34,7 @@ pub struct PatternBundle {
     pub entity: Pattern,
     pub name: Name,
     pub sprite: Sprite,
-    pub animation: AseSpriteAnimation,
+    pub animation: AseAnimation,
     #[with(Acceleration::from_field)]
     pub accel: Acceleration,
     pub velocity: Velocity,
@@ -158,15 +158,18 @@ fn construction(
 
 fn finish_construction(
     mut patterns: Query<(&PatternConstruction, Entity), With<Pattern>>,
-    children: Query<&Children>,
+    children: Query<&ChildOf>,
     mut cmd: Commands,
 ) {
     for (construction, circle) in &mut patterns {
         if !construction.finished {
             continue;
         }
-        for bullet in children.children(circle) {
-            let Some(mut bullet) = cmd.get_entity(*bullet) else {
+        for bullet in &children {
+            if bullet.parent() != circle {
+                return;
+            }
+            let Ok(mut bullet) = cmd.get_entity(bullet.0) else {
                 return;
             };
             bullet.remove::<RigidBodyDisabled>();

@@ -1,5 +1,6 @@
 use bevy::prelude::*;
 
+#[cfg(debug_assertions)]
 use super::GuiDebugLevel;
 
 #[derive(Component, Default)]

@@ -2,7 +2,7 @@ use std::f64::consts::PI;
 
 use bevy::{math::IVec2, prelude::Vec2};
 
-pub fn ldtk_to_bevy_vec2(from: IVec2) -> Vec2 {
+pub const fn ldtk_to_bevy_vec2(from: IVec2) -> Vec2 {
     Vec2 {
         x: from.x as f32,
         y: -from.y as f32,
@@ -14,7 +14,8 @@ pub fn move_toward_f32(from: f32, to: f32, delta: f64) -> f32 {
 
     match diff.abs() as f64 <= delta || diff.abs() <= 1e-8 {
         true => to,
-        false => from + diff.signum() * delta as f32,
+        // Same as from + diff.signum() * delta as f32,
+        false => diff.signum().mul_add(delta as f32, from),
     }
 }
 
@@ -28,6 +29,7 @@ pub fn move_toward_vec2(from: Vec2, to: Vec2, delta: f64) -> Vec2 {
     }
 }
 
+#[allow(dead_code)]
 pub fn move_toward_exp_vec2(from: Vec2, to: Vec2, easing: f64, min_speed: f64, delta: f64) -> Vec2 {
     let distance = from.distance(to) as f64;
     move_toward_vec2(from, to, (easing * distance).exp().max(min_speed) * delta)
@@ -38,6 +40,7 @@ pub fn move_toward_exp_f32(from: f32, to: f32, easing: f64, min_speed: f64, delt
     move_toward_f32(from, to, (easing * distance).exp().max(min_speed) * delta)
 }
 
+#[allow(dead_code)]
 pub fn move_toward_sigmoid_f32(from: f32, to: f32, easing: f64, min_speed: f64, delta: f64) -> f32 {
     let distance = (from - to).abs() as f64;
     move_toward_f32(
@@ -47,6 +50,7 @@ pub fn move_toward_sigmoid_f32(from: f32, to: f32, easing: f64, min_speed: f64, 
     )
 }
 
+#[allow(dead_code)]
 pub fn move_toward_sin_in_f32(from: f32, to: f32, easing: f64, min_speed: f64, delta: f64) -> f32 {
     let distance = (from - to).abs() as f64;
     move_toward_f32(

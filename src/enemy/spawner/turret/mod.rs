@@ -70,7 +70,7 @@ fn turret_shoot(
     mut cmd: Commands,
     time: Res<Time>,
 ) {
-    let Ok(player_position) = player.get_single() else {
+    let Ok(player_position) = player.single() else {
         return;
     };
     let player_position = player_position.translation.truncate();

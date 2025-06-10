@@ -29,7 +29,7 @@ pub struct BulletBundle {
     pub entity: Bullet,
     pub name: Name,
     pub sprite: Sprite,
-    pub animation: AseSpriteAnimation,
+    pub animation: AseAnimation,
     #[from_entity_instance]
     pub sensor_bundle: SensorBundle,
     pub velocity: Velocity,
@@ -50,8 +50,8 @@ fn bullet_player_collision(
     bullet_query: Query<Entity, With<Bullet>>,
     mut health_event: EventWriter<ChangeHealth>,
 ) {
-    let context = rapier_context.single();
-    let Ok(player) = player_query.get_single() else {
+    let context = rapier_context.single().unwrap();
+    let Ok(player) = player_query.single() else {
         return;
     };
 
@@ -59,7 +59,7 @@ fn bullet_player_collision(
         .iter()
         .any(|bullet| context.intersection_pair(bullet, player) == Some(true))
     {
-        health_event.send(ChangeHealth(-1));
+        health_event.write(ChangeHealth(-1));
     }
 }
 

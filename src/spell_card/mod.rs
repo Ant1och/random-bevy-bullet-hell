@@ -37,7 +37,7 @@ impl SpellCardTimer {
     fn tick(mut timers: Query<(&mut SpellCardTimer, Entity)>, time: Res<Time>, mut cmd: Commands) {
         for (mut timer, card) in &mut timers {
             if timer.0.tick(time.delta()).finished() {
-                cmd.entity(card).despawn_recursive();
+                cmd.entity(card).despawn();
             }
         }
     }

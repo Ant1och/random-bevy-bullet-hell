@@ -15,7 +15,7 @@ pub struct Yuyuko;
 pub struct YuyukoBundle {
     pub entity: Yuyuko,
     pub sprite: Sprite,
-    pub animation: AseSpriteAnimation,
+    pub animation: AseAnimation,
     #[with(SpellCardList::from_field)]
     pub spell_card_list: SpellCardList,
     #[from_entity_instance]
@@ -49,7 +49,7 @@ impl Yuyuko {
                 return;
             };
 
-            card_events.send(SpawnCardEvent::new(yuyuko, card));
+            card_events.write(SpawnCardEvent::new(yuyuko, card));
             println!("Yuyuko added!");
         }
     }
@@ -60,16 +60,23 @@ impl Yuyuko {
             match event.card {
                 CirclesOfFifth => cmd
                     .spawn(Yuyuko::circle_of_fifth())
-                    .set_parent(event.parent),
+                    .insert(ChildOf(event.parent)),
             };
         }
     }
 
     fn circle_of_fifth() -> CirclesOfFifthBundle {
-        let frequency = Duration::from_secs_f64(1.);
+        let frequency = Duration::from_secs_f64(1.2);
         let length = Duration::from_secs_f64(100.);
 
         CirclesOfFifthBundle::new(frequency, length)
+    }
+
+    fn animation(mut yuyuko: Query<&mut AseAnimation, With<Yuyuko>>, server: Res<AssetServer>) {
+        for mut animation in &mut yuyuko {
+            animation.aseprite = server.load("yuyuko.aseprite");
+            animation.animation = Animation::tag("idle");
+        }
     }
 }
 
@@ -79,6 +86,9 @@ impl Plugin for YuyukoPlugin {
     fn build(&self, app: &mut App) {
         app.register_ldtk_entity::<YuyukoBundle>("Yuyuko")
             .add_event::<SpawnCardEvent>()
-            .add_systems(Update, (Yuyuko::fight, Yuyuko::spawn_card));
+            .add_systems(
+                Update,
+                (Yuyuko::fight, Yuyuko::spawn_card, Yuyuko::animation),
+            );
     }
 }

@@ -1,11 +1,11 @@
-#![feature(x87_target_feature)]
-use std::num::NonZero;
+#![err(clippy::all)]
 
 use bevy::prelude::*;
 use bevy_aseprite_ultra::AsepriteUltraPlugin;
 use bevy_ecs_ldtk::prelude::*;
-use bevy_inspector_egui::quick::WorldInspectorPlugin;
+use bevy_inspector_egui::{bevy_egui::EguiPlugin, quick::WorldInspectorPlugin};
 use bevy_rapier2d::{prelude::*, rapier::prelude::IntegrationParameters};
+use std::num::NonZero;
 
 mod bullet;
 mod bullet_pattern;
@@ -53,6 +53,7 @@ fn main() {
         ))
         .add_systems(PreStartup, spawn_context.before(PhysicsSet::SyncBackend))
         .insert_resource(LevelSelection::iid("7b660fe0-e920-11ef-8441-3da15693e03d"))
+        // .insert_resource(LevelSelection::iid("a315ac10-66b0-11ec-9cd7-99f223ad6ade"))
         .insert_resource(LdtkSettings {
             level_spawn_behavior: LevelSpawnBehavior::UseWorldTranslation {
                 load_level_neighbors: true,
@@ -70,10 +71,13 @@ fn main() {
         .add_plugins(spell_card::SpellCardPlugin)
         .add_plugins(enemy::EnemyPlugin)
         .add_plugins(camera::CameraPlugin)
+        .add_plugins(EguiPlugin {
+            enable_multipass_for_primary_context: false,
+        })
         .add_plugins(WorldInspectorPlugin::new())
         .add_plugins(input::CustomInputPlugin)
         .add_plugins(gui::GuiPlugin)
-        .add_plugins(bevy::diagnostic::FrameTimeDiagnosticsPlugin)
+        .add_plugins(bevy::diagnostic::FrameTimeDiagnosticsPlugin::default())
         .add_plugins(bevy::diagnostic::LogDiagnosticsPlugin::default())
         .run();
 }

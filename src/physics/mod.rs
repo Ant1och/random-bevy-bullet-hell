@@ -21,14 +21,8 @@ impl Acceleration {
     }
 }
 
-#[derive(Component)]
+#[derive(Component, Default)]
 pub struct IsOutOfBounds(pub bool);
-
-impl Default for IsOutOfBounds {
-    fn default() -> Self {
-        IsOutOfBounds(false)
-    }
-}
 
 #[derive(Component, Default)]
 pub struct DespawnIfOutOfBounds;
@@ -43,7 +37,7 @@ fn update_out_of_bounds(
     let mut bounds: Option<Rect> = None;
     for (level_iid, level_transform) in &levels {
         let ldtk_project = ldtk_project_assets
-            .get(ldtk_projects.single())
+            .get(ldtk_projects.single().unwrap())
             .expect("Project should be loaded if level has spawned");
 
         let level = ldtk_project
@@ -96,7 +90,7 @@ fn despawn_out_of_bounds(
 ) {
     for (entity, out_of_bounds) in &entities {
         if out_of_bounds.0 {
-            cmd.entity(entity).despawn_recursive();
+            cmd.entity(entity).despawn();
         }
     }
 }

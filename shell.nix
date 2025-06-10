@@ -6,7 +6,9 @@ with pkgs;
 
 mkShell rec {
   shellHook = '' 
-    export PATH="/home/$USER/.cargo/bin:$PATH"
+    export CARGO_HOME=$(pwd)/.cargo
+    export PATH=$PATH:''${CARGO_HOME:-~/.cargo}/bin
+    export PATH=$PATH:''${RUSTUP_HOME:-~/.rustup}/toolchains/$RUSTC_VERSION-x86_64-unknown-linux-gnu/bin/
   '';
 
   nativeBuildInputs = [
@@ -23,6 +25,8 @@ mkShell rec {
       "llvm-tools-preview"
       "rustc-codegen-cranelift-preview"
     ])
+    pkgsCross.mingwW64.stdenv.cc
+    pkgsCross.mingwW64.windows.pthreads
     rust-analyzer-nightly
     cargo-llvm-cov
     cargo-nextest
@@ -30,6 +34,7 @@ mkShell rec {
     cargo-watch
     cargo-audit
     cargo-deny
+    rustup
     grcov
     lld
     mold  
@@ -42,9 +47,6 @@ mkShell rec {
     vulkan-loader
     libxkbcommon
     wayland
-    # openssl
-    # openssl.dev
-    # libz
   ];
   
   LD_LIBRARY_PATH = lib.makeLibraryPath buildInputs;

@@ -1,8 +1,7 @@
 debug/
 target/
 examples/
-
-Cargo.lock
+.cargo/
 
 **/*.rs.bk
 

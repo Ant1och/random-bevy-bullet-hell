@@ -26,7 +26,7 @@ fn update(
         return;
     };
 
-    let Ok(PlayerStats { stamina, .. }) = player.get_single() else {
+    let Ok(PlayerStats { stamina, .. }) = player.single() else {
         return;
     };
 
