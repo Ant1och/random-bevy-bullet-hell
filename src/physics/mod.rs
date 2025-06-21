@@ -33,11 +33,11 @@ fn update_out_of_bounds(
     level_selection: Res<LevelSelection>,
     ldtk_project_assets: Res<Assets<LdtkProject>>,
     ldtk_projects: Query<&LdtkProjectHandle>,
-) {
+) -> Result {
     let mut bounds: Option<Rect> = None;
     for (level_iid, level_transform) in &levels {
         let ldtk_project = ldtk_project_assets
-            .get(ldtk_projects.single().unwrap())
+            .get(ldtk_projects.single()?)
             .expect("Project should be loaded if level has spawned");
 
         let level = ldtk_project
@@ -61,7 +61,7 @@ fn update_out_of_bounds(
     let bounds = match bounds {
         Some(val) => val,
         None => {
-            return;
+            return Ok(());
         }
     };
 
@@ -73,6 +73,7 @@ fn update_out_of_bounds(
         let entity_pos = entity_tranform.translation().truncate();
         is_out_of_bounds.0 = out_of_bounds(entity_pos);
     }
+    Ok(())
 }
 
 fn add_out_of_bounds(
@@ -99,14 +100,11 @@ fn despawn_out_of_bounds(
 pub struct DespawnIfNoChildren;
 
 pub fn despawn_no_children(
-    entities: Query<(Entity, &Children), With<DespawnIfNoChildren>>,
-
+    entities: Query<Entity, (With<DespawnIfNoChildren>, Without<Children>)>,
     mut cmd: Commands,
 ) {
-    for (entity, children) in entities.iter() {
-        if children.is_empty() {
-            cmd.entity(entity).despawn();
-        }
+    for entity in &entities {
+        cmd.entity(entity).despawn();
     }
 }
 

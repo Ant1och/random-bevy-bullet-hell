@@ -20,15 +20,13 @@ pub struct HealthBarBundle {
 fn update_health_bar(
     mut health_bars: Query<&mut Text, With<HealthBar>>,
     health_events: EventReader<ChangeHealth>,
-    player: Query<&PlayerStats, With<Player>>,
+    player: Single<&PlayerStats, With<Player>>,
 ) {
     if health_events.is_empty() {
         return;
     };
 
-    let Ok(PlayerStats { health, .. }) = player.single() else {
-        return;
-    };
+    let PlayerStats { health, .. } = player.into_inner();
 
     for mut text in &mut health_bars {
         **text = health.to_string();

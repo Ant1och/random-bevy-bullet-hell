@@ -2,7 +2,7 @@ use bevy::prelude::*;
 use bevy_inspector_egui::egui::emath::Numeric;
 use std::f32::consts::PI;
 
-#[derive(Component, Default, PartialEq, Debug, Clone)]
+#[derive(Component, Default, Debug, Clone)]
 pub enum ConstructionType {
     #[default]
     Circle,

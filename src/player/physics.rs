@@ -1,6 +1,6 @@
 use crate::{
     ground_detection::GroundDetection,
-    input::prelude::*,
+    input::Action,
     physics::looking_direction::LookDir,
     player::{DashTimer, LookingDirection, Player},
     shared::move_toward_f32,
@@ -8,6 +8,7 @@ use crate::{
 use bevy::prelude::*;
 use bevy_rapier2d::prelude::Velocity;
 use bevy_rapier2d::prelude::*;
+use leafwing_input_manager::prelude::ActionState;
 
 use crate::player::config::physics::*;
 
@@ -41,110 +42,89 @@ fn dash(looking_direction: &LookDir, direction: &Vec2) -> Vec2 {
 }
 
 fn player_dash(
-    mut player: Query<(&LookingDirection, &PlayerStats, &mut Velocity), With<Player>>,
-    input: Query<(&Direction, &KeysPressed), With<CustomInput>>,
+    player: Single<
+        (
+            &ActionState<Action>,
+            &LookingDirection,
+            &PlayerStats,
+            &mut Velocity,
+        ),
+        With<Player>,
+    >,
     mut event_writer: EventWriter<Dash>,
     mut dash_timer: ResMut<DashTimer>,
 ) {
-    let Ok((looking_direction, PlayerStats { stamina, .. }, mut velocity)) = player.single_mut()
-    else {
-        return;
-    };
+    let (input, looking_direction, PlayerStats { stamina, .. }, mut velocity) = player.into_inner();
 
-    let Ok((direction, keys)) = input.single() else {
-        return;
-    };
+    let direction = input.axis_pair(&Action::Direction);
 
-    if *stamina > 0 && keys.just_pressed(KeyType::Dash) {
-        println!("{stamina}");
-        velocity.linvel = dash(&looking_direction.0, &direction.0);
+    if *stamina > 0 && input.just_pressed(&Action::Dash) {
+        velocity.linvel = dash(&looking_direction.0, &direction);
         dash_timer.0.reset();
         event_writer.write(Dash);
     }
 }
 
 fn player_gravity(
-    mut player: Query<&mut Velocity, With<Player>>,
+    mut player: Single<&mut Velocity, With<Player>>,
     time: Res<Time>,
     mut dash_timer: ResMut<DashTimer>,
 ) {
     let delta = time.delta_secs_f64();
-    let Ok(mut velocity) = player.single_mut() else {
-        return;
-    };
+    let velocity = &mut player.linvel;
 
     if dash_timer.0.tick(time.delta()).finished() {
-        velocity.linvel.y -= (PLAYER_GRAVITY * delta) as f32;
+        velocity.y -= (PLAYER_GRAVITY * delta) as f32;
     }
 }
 
-fn player_decelleration(mut player: Query<&mut Velocity, With<Player>>, time: Res<Time>) {
+fn player_decelleration(mut player: Single<&mut Velocity, With<Player>>, time: Res<Time>) {
     let delta = time.delta().as_secs_f64();
-    let Ok(mut velocity) = player.single_mut() else {
-        return;
-    };
-    let decelleration_x =
-        PLAYER_DECELLERATION * (velocity.linvel.x.abs().sqrt() + 1.) as f64 * delta;
-    let decelleration_y =
-        PLAYER_DECELLERATION * (velocity.linvel.y.abs().sqrt() + 1.) as f64 * delta;
+    let velocity = &mut player.linvel;
+    let decelleration_x = PLAYER_DECELLERATION * (velocity.x.abs().sqrt() + 1.) as f64 * delta;
+    let decelleration_y = PLAYER_DECELLERATION * (velocity.y.abs().sqrt() + 1.) as f64 * delta;
     let decelleration_y_down = PLAYER_DECELLERATION / PLAYER_GRAVITY * delta;
 
-    velocity.linvel.y = match velocity.linvel.y > 0. {
-        true => move_toward_f32(velocity.linvel.y, 0., decelleration_y),
-        false => move_toward_f32(velocity.linvel.y, 0., decelleration_y_down),
+    velocity.y = match velocity.y > 0. {
+        true => move_toward_f32(velocity.y, 0., decelleration_y),
+        false => move_toward_f32(velocity.y, 0., decelleration_y_down),
     };
 
-    velocity.linvel.x = move_toward_f32(velocity.linvel.x, 0., decelleration_x);
+    velocity.x = move_toward_f32(velocity.x, 0., decelleration_x);
 }
 
 fn player_jump(
-    mut player: Query<(&mut Velocity, &GroundDetection), With<Player>>,
-    input: Query<&KeysPressed, With<CustomInput>>,
+    player: Single<(&ActionState<Action>, &mut Velocity, &GroundDetection), With<Player>>,
 ) {
-    let Ok((mut velocity, ground_detection)) = player.single_mut() else {
-        return;
-    };
-    let Ok(keys) = input.single() else {
-        return;
-    };
+    let (input, mut velocity, GroundDetection { grounded, .. }) = player.into_inner();
 
-    if keys.pressed(KeyType::Jump) && ground_detection.grounded {
+    if input.pressed(&Action::Jump) && *grounded {
         velocity.linvel.y = PLAYER_JUMP_STRENGTH;
     }
 }
 
 fn player_horizontal_movement(
-    mut player: Query<&mut Velocity, With<Player>>,
+    player: Single<(&ActionState<Action>, &mut Velocity), With<Player>>,
     time: Res<Time>,
-    input: Query<&Direction, With<CustomInput>>,
 ) {
-    let Ok(mut velocity) = player.single_mut() else {
-        return;
-    };
-    let Ok(Direction(direction)) = input.single() else {
-        return;
-    };
+    let (input, mut velocity) = player.into_inner();
+    let velocity = &mut velocity.linvel;
+    let direction = input.axis_pair(&Action::Direction);
 
     let delta = time.delta().as_secs_f64();
     let new_vel_x = direction.x * PLAYER_SPEED;
     let acceleration = PLAYER_ACELLERATION * delta;
 
-    if direction.x != 0. && new_vel_x.abs() > velocity.linvel.x.abs() {
-        velocity.linvel.x = move_toward_f32(velocity.linvel.x, new_vel_x, acceleration);
+    if direction.x != 0. && new_vel_x.abs() > velocity.x.abs() {
+        velocity.x = move_toward_f32(velocity.x, new_vel_x, acceleration);
     }
 }
 
 fn player_looking_direction(
-    mut player: Query<&mut LookingDirection, With<Player>>,
-    input: Query<&Direction, With<CustomInput>>,
+    player: Single<(&ActionState<Action>, &mut LookingDirection), With<Player>>,
 ) {
-    let Ok(Direction(direction)) = input.single() else {
-        return;
-    };
-
-    let Ok(mut looking_direction) = player.single_mut() else {
-        return;
-    };
+    let (input, mut looking_direction) = player.into_inner();
+    let direction = input.axis_pair(&Action::Direction);
 
     if direction.x != 0. {
         looking_direction.0 = LookDir::from(direction.x);
@@ -152,17 +132,12 @@ fn player_looking_direction(
 }
 
 fn player_autostep(
-    ground_detection: Query<&GroundDetection, With<Player>>,
-    mut controller: Query<&mut KinematicCharacterController>,
+    ground_detection: Single<&GroundDetection, With<Player>>,
+    controller: Single<&mut KinematicCharacterController>,
 ) {
-    let Ok(mut controller) = controller.single_mut() else {
-        return;
-    };
-    let Ok(ground_detection) = ground_detection.single() else {
-        return;
-    };
-
-    if ground_detection.grounded {
+    let mut controller = controller.into_inner();
+    let grounded = ground_detection.grounded;
+    if grounded {
         controller.translation = Some(Vec2::new(0., PLAYER_AUTOSTEP_AMOUNT));
     }
 }

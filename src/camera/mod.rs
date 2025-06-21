@@ -35,82 +35,78 @@ fn spawn_camera(mut cmd: Commands) {
 
 #[allow(clippy::type_complexity)]
 pub fn camera_fit_inside_current_level(
-    mut camera_query: Query<(&mut Projection, &mut Target), (With<Camera2d>, Without<Player>)>,
-    player_query: Query<&Transform, With<Player>>,
+    camera: Single<(&mut Projection, &mut Target), (With<Camera2d>, Without<Player>)>,
+    player: Single<&Transform, With<Player>>,
     level_query: Query<(&Transform, &LevelIid), (Without<Projection>, Without<Player>)>,
     ldtk_projects: Query<&LdtkProjectHandle>,
     level_selection: Res<LevelSelection>,
     ldtk_project_assets: Res<Assets<LdtkProject>>,
-) {
-    if let Ok(Transform {
-        translation: player_translation,
-        ..
-    }) = player_query.single()
+) -> Result {
+    let (mut projection, mut target) = camera.into_inner();
+    let player_translation = player.translation;
+
+    let Projection::Orthographic(ref mut orthographic_projection) = &mut *projection else {
+        return Err(BevyError::from("non-orthographic projection found"));
+    };
+
+    for (
+        Transform {
+            translation: level_translation,
+            ..
+        },
+        level_iid,
+    ) in &level_query
     {
-        let player_translation = *player_translation;
+        let ldtk_project = ldtk_project_assets
+            .get(ldtk_projects.single()?)
+            .expect("Project should be loaded if level has spawned");
 
-        let Ok((projection, mut target)) = camera_query.single_mut() else {
-            return;
-        };
+        let level = ldtk_project
+            .get_raw_level_by_iid(&level_iid.to_string())
+            .expect("Spawned level should exist in LDtk project");
 
-        if let Projection::Orthographic(ref mut orthographic_projection) = *projection.into_inner()
-        {
-            for (level_transform, level_iid) in &level_query {
-                let ldtk_project = ldtk_project_assets
-                    .get(ldtk_projects.single().unwrap())
-                    .expect("Project should be loaded if level has spawned");
+        if level_selection.is_match(&LevelIndices::default(), level) {
+            orthographic_projection.viewport_origin = Vec2::ZERO;
 
-                let level = ldtk_project
-                    .get_raw_level_by_iid(&level_iid.to_string())
-                    .expect("Spawned level should exist in LDtk project");
+            let level_ratio = level.px_wid as f32 / level.px_hei as f32;
 
-                if level_selection.is_match(&LevelIndices::default(), level) {
-                    orthographic_projection.viewport_origin = Vec2::ZERO;
+            let mut height = (level.px_hei as f32 / 9.).round() * 9.;
+            let mut width = (level.px_wid as f32 / 16.).round() * 16.;
 
-                    let level_ratio = level.px_wid as f32 / level.px_hei as f32;
-
-                    let mut height = (level.px_hei as f32 / 9.).round() * 9.;
-                    let mut width = (level.px_wid as f32 / 16.).round() * 16.;
-
-                    if level_ratio > ASPECT_RATIO {
-                        width = height * ASPECT_RATIO;
-                    } else {
-                        height = width / ASPECT_RATIO;
-                    }
-                    orthographic_projection.scaling_mode =
-                        bevy::render::camera::ScalingMode::Fixed { width, height };
-                    orthographic_projection.viewport_origin = Vec2::new(0.5, 0.5);
-                    let discrete_player_translation_y =
-                        (player_translation.y / CAMERA_VERTICAL_STEP).round()
-                            * CAMERA_VERTICAL_STEP;
-
-                    target.0 = Vec2::new(
-                        (player_translation.x - level_transform.translation.x).clamp(
-                            width / 2.,
-                            (level.px_wid as f32 - width / 2.).max(width / 2.),
-                        ),
-                        (discrete_player_translation_y - level_transform.translation.y).clamp(
-                            height / 2.,
-                            (level.px_hei as f32 - height / 2.).max(height / 2.),
-                        ),
-                    );
-
-                    target.0.x += level_transform.translation.x;
-                    target.0.y += level_transform.translation.y;
-                }
+            if level_ratio > ASPECT_RATIO {
+                width = height * ASPECT_RATIO;
+            } else {
+                height = width / ASPECT_RATIO;
             }
+            orthographic_projection.scaling_mode = ScalingMode::Fixed { width, height };
+            orthographic_projection.viewport_origin = Vec2::new(0.5, 0.5);
+            let player_translation_discrete_y =
+                (player_translation.y / CAMERA_VERTICAL_STEP).round() * CAMERA_VERTICAL_STEP;
+
+            target.0 = Vec2::new(
+                (player_translation.x - level_translation.x).clamp(
+                    width / 2.,
+                    (level.px_wid as f32 - width / 2.).max(width / 2.),
+                ),
+                (player_translation_discrete_y - level_translation.y).clamp(
+                    height / 2.,
+                    (level.px_hei as f32 - height / 2.).max(height / 2.),
+                ),
+            );
+
+            target.0.x += level_translation.x;
+            target.0.y += level_translation.y;
         }
     }
+    Ok(())
 }
 
 fn camera_move_to_target(
-    mut camera: Query<(&mut Transform, &Target, &IsOutOfBounds), With<Camera2d>>,
+    camera: Single<(&mut Transform, &Target, &IsOutOfBounds), With<Camera2d>>,
     time: Res<Time>,
 ) {
     let delta = time.delta_secs_f64();
-    let Ok((mut transform, target, out_of_bounds)) = camera.single_mut() else {
-        return;
-    };
+    let (mut transform, target, out_of_bounds) = camera.into_inner();
 
     if out_of_bounds.0 {
         transform.translation = target.0.extend(0.);

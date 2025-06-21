@@ -1,3 +1,4 @@
+use crate::input::Action;
 use crate::physics::looking_direction::LookDir;
 use crate::{colliders::ColliderBundle, ground_detection::GroundDetection};
 use bevy::prelude::*;
@@ -7,15 +8,15 @@ use bevy_rapier2d::prelude::KinematicCharacterController;
 
 pub mod config;
 use config::PLAYER_DEFAULT_LOOKING_DIRECTION;
-
 mod animation;
 use animation::PlayerAnimationPlugin;
-
 mod physics;
+use leafwing_input_manager::prelude::InputMap;
 use physics::PlayerPhysicsPlugin;
-
 pub mod stats;
 use stats::{PlayerStats, PlayerStatsPlugin};
+pub mod attack;
+use attack::AttackPlugin;
 
 #[derive(Debug, Default, Component)]
 pub struct Player;
@@ -46,6 +47,7 @@ pub struct PlayerBundle {
     pub worldly: Worldly,
     pub ground_detection: GroundDetection,
     pub character_controller: KinematicCharacterController,
+    pub input_map: InputMap<Action>,
     #[from_entity_instance]
     entity_instance: EntityInstance,
 }
@@ -57,6 +59,7 @@ impl Plugin for PlayerPlugin {
         app.register_ldtk_entity::<PlayerBundle>("Player")
             .add_plugins(PlayerPhysicsPlugin)
             .add_plugins(PlayerAnimationPlugin)
-            .add_plugins(PlayerStatsPlugin);
+            .add_plugins(PlayerStatsPlugin)
+            .add_plugins(AttackPlugin);
     }
 }

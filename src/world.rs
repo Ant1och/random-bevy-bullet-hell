@@ -26,10 +26,10 @@ pub fn update_level_selection(
     mut level_selection: ResMut<LevelSelection>,
     ldtk_projects: Query<&LdtkProjectHandle>,
     ldtk_project_assets: Res<Assets<LdtkProject>>,
-) {
+) -> Result {
     for (level_iid, level_transform) in &level_query {
         let ldtk_project = ldtk_project_assets
-            .get(ldtk_projects.single().unwrap())
+            .get(ldtk_projects.single()?)
             .expect("Project should be loaded if level has spawned");
 
         let level = ldtk_project
@@ -55,6 +55,7 @@ pub fn update_level_selection(
             }
         }
     }
+    Ok(())
 }
 
 pub struct WorldPlugin;

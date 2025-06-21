@@ -13,9 +13,6 @@ use animation::BulletAnimationPlugin;
 use bevy_rapier2d::plugin::ReadRapierContext;
 use bevy_rapier2d::prelude::Velocity;
 
-// mod physics;
-// use physics::BulletPhysicsPlugin;
-
 #[derive(PartialEq, Debug, Default, Component)]
 pub struct Bullet;
 
@@ -36,8 +33,6 @@ pub struct BulletBundle {
     pub acceleration: Acceleration,
     pub params: BulletParams,
     pub movement: MovementType,
-    // #[worldly]
-    // pub worldly: Worldly,
     pub transform: Transform,
     #[from_entity_instance]
     pub entity_instance: EntityInstance,
@@ -46,21 +41,19 @@ pub struct BulletBundle {
 
 fn bullet_player_collision(
     rapier_context: ReadRapierContext,
-    player_query: Query<Entity, With<Player>>,
+    player: Single<Entity, With<Player>>,
     bullet_query: Query<Entity, With<Bullet>>,
     mut health_event: EventWriter<ChangeHealth>,
-) {
-    let context = rapier_context.single().unwrap();
-    let Ok(player) = player_query.single() else {
-        return;
-    };
+) -> Result {
+    let context = rapier_context.single()?;
 
     if bullet_query
         .iter()
-        .any(|bullet| context.intersection_pair(bullet, player) == Some(true))
+        .any(|bullet| context.intersection_pair(bullet, player.entity()) == Some(true))
     {
         health_event.write(ChangeHealth(-1));
     }
+    Ok(())
 }
 
 pub struct BulletPlugin;
@@ -68,8 +61,6 @@ pub struct BulletPlugin;
 impl Plugin for BulletPlugin {
     fn build(&self, app: &mut App) {
         app.register_ldtk_entity::<BulletBundle>("Bullet")
-            // app
-            // .add_plugins(BulletPhysicsPlugin)
             .add_systems(Update, bullet_player_collision)
             .add_plugins(BulletAnimationPlugin);
     }

@@ -1,4 +1,3 @@
-use crate::input::{CustomInput, KeysPressed};
 use bevy::prelude::*;
 
 pub mod bar;
@@ -74,17 +73,20 @@ impl GuiDebugLevel {
 }
 
 #[cfg(debug_assertions)]
+use crate::input::debug::DebugAction;
+#[cfg(debug_assertions)]
+use leafwing_input_manager::prelude::ActionState;
+
+#[cfg(debug_assertions)]
 fn toggle_gui_debug(
-    input: Query<&KeysPressed, With<CustomInput>>,
+    input: Single<&ActionState<DebugAction>>,
     mut gui_debug: ResMut<GuiDebugLevel>,
 ) {
-    use crate::input::config::KeyType;
+    use crate::input::debug::DebugAction;
 
-    let Ok(keys) = input.single() else {
-        return;
-    };
+    let keys = input.into_inner();
 
-    if keys.just_pressed(KeyType::GuiDebugToggle) {
+    if keys.just_pressed(&DebugAction::GuiToggle) {
         gui_debug.next();
         info!("Gui Debug level: {:?}", *gui_debug);
     }

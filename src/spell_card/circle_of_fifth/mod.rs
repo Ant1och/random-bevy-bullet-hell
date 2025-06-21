@@ -26,8 +26,6 @@ pub struct CirclesOfFifthBundle {
     pub timer: SpellCardTimer,
     params: Params,
     pub transform: Transform,
-    // #[worldly]
-    // pub worldy: Worldly,
     #[from_entity_instance]
     pub entity_instance: EntityInstance,
 }

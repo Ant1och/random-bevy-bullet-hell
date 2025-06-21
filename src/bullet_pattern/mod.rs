@@ -45,13 +45,12 @@ pub struct PatternBundle {
     pub movement_type: MovementType,
     pub construction_type: ConstructionType,
     pub construction: PatternConstruction,
-    // #[worldly]
-    // pub worldly: Worldly,
     pub transform: Transform,
     #[from_entity_instance]
     pub entity_instance: EntityInstance,
     pub disabled: RigidBodyDisabled,
     pub despawn_if_no_children: DespawnIfNoChildren,
+    pub children: Children,
 }
 
 impl PatternParams {
@@ -152,24 +151,20 @@ fn construction(
         construction.progress += 1;
 
         cmd.entity(bullet).insert(RigidBodyDisabled);
-        cmd.entity(circle).add_child(bullet);
+        cmd.entity(bullet).insert(ChildOf(circle));
     }
 }
 
 fn finish_construction(
-    mut patterns: Query<(&PatternConstruction, Entity), With<Pattern>>,
-    children: Query<&ChildOf>,
+    mut patterns: Query<(&PatternConstruction, &Children, Entity), With<Pattern>>,
     mut cmd: Commands,
 ) {
-    for (construction, circle) in &mut patterns {
+    for (construction, bullets, circle) in &mut patterns {
         if !construction.finished {
             continue;
         }
-        for bullet in &children {
-            if bullet.parent() != circle {
-                return;
-            }
-            let Ok(mut bullet) = cmd.get_entity(bullet.0) else {
+        for bullet in bullets {
+            let Ok(mut bullet) = cmd.get_entity(*bullet) else {
                 return;
             };
             bullet.remove::<RigidBodyDisabled>();

@@ -44,14 +44,12 @@ fn decrease_stamina_on_dash(
 }
 
 fn stamina_regen(
-    stats: Query<&PlayerStats, With<Player>>,
+    stats: Single<&PlayerStats, With<Player>>,
     mut timer: ResMut<StaminaTimer>,
     mut event_writer: EventWriter<ChangeStamina>,
     time: Res<Time>,
 ) {
-    let Ok(PlayerStats { stamina, .. }) = stats.single() else {
-        return;
-    };
+    let stamina = &stats.stamina;
 
     if stamina >= &PLAYER_STAMINA {
         return;
@@ -64,33 +62,25 @@ fn stamina_regen(
 }
 
 pub fn stamina_change_event(
-    mut player: Query<&mut PlayerStats, With<Player>>,
+    mut player: Single<&mut PlayerStats, With<Player>>,
     mut reader: EventReader<ChangeStamina>,
 ) {
-    let Ok(mut stats) = player.single_mut() else {
-        return;
-    };
-
     for event in reader.read() {
-        stats.stamina += event.0;
-        info!("Stamina: {}", stats.stamina);
+        player.stamina += event.0;
+        info!("Stamina: {}", player.stamina);
     }
 }
 
 fn health_change_event(
-    mut player: Query<&mut PlayerStats, With<Player>>,
+    mut player: Single<&mut PlayerStats, With<Player>>,
     mut invicibility_timer: ResMut<InvincibilityTimer>,
     mut reader: EventReader<ChangeHealth>,
 ) {
-    let Ok(mut stats) = player.single_mut() else {
-        return;
-    };
-
     if invicibility_timer.0.finished() {
         for event in reader.read() {
-            stats.health += event.0;
+            player.health += event.0;
             invicibility_timer.0.reset();
-            info!("Health: {}", stats.health);
+            info!("Health: {}", player.health);
         }
     }
 }

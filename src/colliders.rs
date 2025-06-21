@@ -26,7 +26,10 @@ pub struct SensorBundle {
     pub rigid_body: RigidBody,
     // pub velocity: Velocity,
     pub rotation_constraints: LockedAxes,
+    pub gravity_scale: GravityScale,
     pub active_events: ActiveEvents,
+    pub damping: Damping,
+    pub friction: Friction,
     pub sensor: Sensor,
 }
 
@@ -42,6 +45,15 @@ impl From<&EntityInstance> for SensorBundle {
                 collider: Collider::cuboid(width / 2., height / 2.),
                 rigid_body: RigidBody::KinematicVelocityBased,
                 rotation_constraints,
+                gravity_scale: GravityScale(0.),
+                damping: Damping {
+                    linear_damping: 0.,
+                    angular_damping: 0.,
+                },
+                friction: Friction {
+                    coefficient: 0.,
+                    combine_rule: CoefficientCombineRule::Min,
+                },
                 active_events: ActiveEvents::COLLISION_EVENTS,
                 ..Default::default()
             },

@@ -20,15 +20,13 @@ pub struct StaminaBarBundle {
 fn update(
     mut stamina_bars: Query<&mut Text, With<StaminaBar>>,
     stamina_events: EventReader<ChangeStamina>,
-    player: Query<&PlayerStats, With<Player>>,
+    player: Single<&PlayerStats, With<Player>>,
 ) {
     if stamina_events.is_empty() {
         return;
     };
 
-    let Ok(PlayerStats { stamina, .. }) = player.single() else {
-        return;
-    };
+    let PlayerStats { stamina, .. } = player.into_inner();
 
     for mut text in &mut stamina_bars {
         **text = stamina.to_string();

@@ -1,21 +1,24 @@
-use crate::input::prelude::*;
+use crate::input::Action;
 use crate::physics::looking_direction::LookDir;
 use crate::player::config::animation::*;
 use crate::player::{LookingDirection, Player};
 use bevy::prelude::*;
 use bevy_aseprite_ultra::prelude::*;
+use leafwing_input_manager::prelude::ActionState;
 
 pub fn player_animation(
-    input: Query<&Direction, With<CustomInput>>,
-    mut player: Query<(&mut AseAnimation, &mut Sprite, &LookingDirection), With<Player>>,
+    player: Single<
+        (
+            &ActionState<Action>,
+            &mut AseAnimation,
+            &mut Sprite,
+            &LookingDirection,
+        ),
+        With<Player>,
+    >,
 ) {
-    let Ok((mut asesprite, mut sprite, looking_direction)) = player.single_mut() else {
-        return;
-    };
-    let direction = match input.single() {
-        Ok(val) => val.0,
-        Err(_) => Vec2::ZERO,
-    };
+    let (input, mut asesprite, mut sprite, looking_direction) = player.into_inner();
+    let direction = input.axis_pair(&Action::Direction);
 
     sprite.flip_x = match looking_direction.0 {
         LookDir::Right => false,
@@ -38,12 +41,10 @@ pub fn player_animation(
 }
 
 pub fn set_player_sprite(
-    mut player: Query<(&mut AseAnimation, &mut Transform), Added<Player>>,
+    player: Single<(&mut AseAnimation, &mut Transform), Added<Player>>,
     server: Res<AssetServer>,
 ) {
-    let Ok((mut animation, mut transform)) = player.single_mut() else {
-        return;
-    };
+    let (mut animation, mut transform) = player.into_inner();
 
     // Resize player and their sprite
     transform.scale.y *= 18. / 48.;

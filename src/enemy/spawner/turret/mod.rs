@@ -57,7 +57,7 @@ impl TurretBundle {
 }
 
 fn turret_shoot(
-    player: Query<&Transform, With<Player>>,
+    player: Single<&Transform, With<Player>>,
     mut turrets: Query<
         (
             &mut ShootTimer,
@@ -70,10 +70,7 @@ fn turret_shoot(
     mut cmd: Commands,
     time: Res<Time>,
 ) {
-    let Ok(player_position) = player.single() else {
-        return;
-    };
-    let player_position = player_position.translation.truncate();
+    let player_position = player.translation.truncate();
 
     for (mut shoot_timer, transform, mut ammo, turret) in &mut turrets {
         if shoot_timer.0.tick(time.delta()).just_finished() {
