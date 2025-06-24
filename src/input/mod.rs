@@ -1,5 +1,4 @@
 use bevy::prelude::*;
-use bevy_ecs_ldtk::EntityInstance;
 use leafwing_input_manager::prelude::*;
 
 use crate::{input::debug::DebugAction, player::Player};

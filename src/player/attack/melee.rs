@@ -33,16 +33,9 @@ struct MeleeTimer(pub Timer);
 fn spawn_attack(
     mut events: EventReader<MeleeEvent>,
     mut cmd: Commands,
-    player: Single<(Entity, &Transform, &LookingDirection), With<Player>>,
+    player: Single<(Entity, &LookingDirection), With<Player>>,
 ) {
-    let (
-        player,
-        Transform {
-            translation: player_pos,
-            ..
-        },
-        LookingDirection(look_dir),
-    ) = player.into_inner();
+    let (player, LookingDirection(look_dir)) = player.into_inner();
 
     for MeleeEvent {
         area,
@@ -50,19 +43,20 @@ fn spawn_attack(
         duration,
     } in events.read()
     {
-        cmd.entity(player).insert((
-            Melee,
-            MeleeTimer(Timer::new(*duration, TimerMode::Once)),
-            SensorBundle {
-                collider: Collider::cuboid(area.half_size.x, area.half_size.y),
-                ..default()
-            },
-            Transform::from_xyz(
-                player_pos.x as f32 + offset.x as f32 * look_dir.into(),
-                player_pos.y + offset.y,
-                10.,
-            ),
-        ));
+        let attack = cmd
+            .spawn((
+                Melee,
+                MeleeTimer(Timer::new(*duration, TimerMode::Once)),
+                SensorBundle {
+                    collider: Collider::cuboid(area.half_size.x, area.half_size.y),
+                    ..default()
+                },
+                Transform::from_xyz(offset.x * Into::<f32>::into(look_dir), offset.y, 10.),
+            ))
+            .id();
+
+        cmd.entity(player).add_child(attack);
+        println!("spawn!");
     }
 }
 
@@ -74,6 +68,7 @@ fn despawn_attack(
     for (attack, mut timer) in &mut attacks {
         if timer.0.tick(time.delta()).finished() {
             cmd.entity(attack).despawn();
+            println!("despawn!");
         }
     }
 }
@@ -82,6 +77,7 @@ pub(super) struct MeleePlugin;
 
 impl Plugin for MeleePlugin {
     fn build(&self, app: &mut App) {
-        app.add_systems(Update, (spawn_attack, despawn_attack));
+        app.add_event::<MeleeEvent>()
+            .add_systems(Update, (spawn_attack, despawn_attack));
     }
 }
