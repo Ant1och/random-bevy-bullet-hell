@@ -76,12 +76,9 @@ fn update_out_of_bounds(
     Ok(())
 }
 
-fn add_out_of_bounds(
-    entities: Query<Entity, (With<DespawnIfOutOfBounds>, Without<IsOutOfBounds>)>,
-    mut cmd: Commands,
-) {
+fn add_out_of_bounds(entities: Query<Entity, Added<DespawnIfOutOfBounds>>, mut cmd: Commands) {
     for entity in &entities {
-        cmd.entity(entity).insert(IsOutOfBounds::default());
+        cmd.entity(entity).try_insert(IsOutOfBounds::default());
     }
 }
 
