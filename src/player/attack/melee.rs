@@ -2,9 +2,13 @@ use std::time::Duration;
 
 use crate::{
     colliders::SensorBundle,
-    player::{LookingDirection, Player},
+    player::{
+        state::{PlayerState, QueuePlayerState},
+        LookingDirection, Player,
+    },
 };
 use bevy::prelude::*;
+// use bevy_aseprite_ultra::prelude::{AnimationRepeat, AseAnimation};
 use bevy_rapier2d::prelude::Collider;
 
 #[derive(Event)]
@@ -31,7 +35,8 @@ struct Melee;
 struct MeleeTimer(pub Timer);
 
 fn spawn_attack(
-    mut events: EventReader<MeleeEvent>,
+    mut melee_events: EventReader<MeleeEvent>,
+    mut state_event: EventWriter<QueuePlayerState>,
     mut cmd: Commands,
     player: Single<(Entity, &LookingDirection), With<Player>>,
 ) {
@@ -41,7 +46,7 @@ fn spawn_attack(
         area,
         offset,
         duration,
-    } in events.read()
+    } in melee_events.read()
     {
         let attack = cmd
             .spawn((
@@ -57,6 +62,7 @@ fn spawn_attack(
 
         cmd.entity(player).add_child(attack);
         println!("spawn!");
+        state_event.write(QueuePlayerState(PlayerState::Attack));
     }
 }
 

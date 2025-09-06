@@ -1,6 +1,5 @@
 use crate::physics::looking_direction::LookDir;
 
-pub mod animation;
 pub mod collision;
 pub mod physics;
 pub mod stats;

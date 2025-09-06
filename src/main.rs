@@ -4,6 +4,7 @@ use bevy::prelude::*;
 use bevy_aseprite_ultra::AsepriteUltraPlugin;
 use bevy_ecs_ldtk::prelude::*;
 use bevy_inspector_egui::{bevy_egui::EguiPlugin, quick::WorldInspectorPlugin};
+use bevy_mod_aseprite::AsepritePlugin;
 use bevy_rapier2d::{prelude::*, rapier::prelude::IntegrationParameters};
 use std::num::NonZero;
 
@@ -16,10 +17,12 @@ mod enemy;
 mod ground_detection;
 mod gui;
 mod input;
+mod main_menu;
 mod physics;
 mod player;
 mod shared;
 mod spell_card;
+mod state;
 mod walls;
 mod world;
 
@@ -44,6 +47,7 @@ fn main() {
         // Pixel art fix
         .add_plugins(DefaultPlugins.set(ImagePlugin::default_nearest()))
         .add_plugins(AsepriteUltraPlugin)
+        .add_plugins(AsepritePlugin)
         .add_plugins((
             LdtkPlugin,
             RapierPhysicsPlugin::<NoUserData>::with_custom_initialization(
@@ -61,6 +65,8 @@ fn main() {
             set_clear_color: SetClearColor::FromLevelBackground,
             ..Default::default()
         })
+        .add_plugins(main_menu::MainMenuPlugin)
+        .add_plugins(state::StatePlugin)
         .add_plugins(world::WorldPlugin)
         .add_plugins(walls::WallPlugin)
         .add_plugins(ground_detection::GroundDetectionPlugin)
@@ -71,9 +77,7 @@ fn main() {
         .add_plugins(spell_card::SpellCardPlugin)
         .add_plugins(enemy::EnemyPlugin)
         .add_plugins(camera::CameraPlugin)
-        .add_plugins(EguiPlugin {
-            enable_multipass_for_primary_context: false,
-        })
+        .add_plugins(EguiPlugin::default())
         .add_plugins(WorldInspectorPlugin::new())
         .add_plugins(input::CustomInputPlugin)
         .add_plugins(gui::GuiPlugin)

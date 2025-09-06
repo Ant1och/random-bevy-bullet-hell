@@ -1,3 +1,4 @@
+use crate::state::AppState;
 use bevy::prelude::*;
 
 pub mod bar;
@@ -95,7 +96,7 @@ fn toggle_gui_debug(
 impl Plugin for GuiPlugin {
     fn build(&self, app: &mut App) {
         app.insert_resource(UiScale(3.))
-            .add_systems(Startup, setup_gui)
+            .add_systems(OnEnter(AppState::Playing), setup_gui)
             .add_plugins(GuiPartsPlugin)
             .add_plugins(StatusBarPlugin);
 

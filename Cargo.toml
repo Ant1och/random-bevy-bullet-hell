@@ -11,9 +11,10 @@ bevy-inspector-egui = ">=0.31"
 bevy_aseprite_ultra = ">=0.6"
 bevy_ecs_ldtk = ">=0.12"
 bevy_hui = ">=0.4"
+bevy_mod_aseprite = "0.10.0"
 # bevy_rapier2d = { git = "https://github.com/dimforge/bevy_rapier" }
 bevy_rapier2d = ">=0.30"
-leafwing-input-manager = "0.17.0"
+leafwing-input-manager = "0.17.1"
 # bevy_aseprite_ultra = { git = "https://github.com/Lommix/bevy_aseprite_ultra"}
 log = { version = "*", features = [
     "max_level_debug",

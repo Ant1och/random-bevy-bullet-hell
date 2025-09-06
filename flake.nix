@@ -1,6 +1,6 @@
 {
   inputs = {
-    fenix.url = "github:nix-community/fenix";
+    fenix.url = "github:nix-community/fenix/staging";
     naersk.url = "github:nix-community/naersk/master";
     nixpkgs.url = "github:NixOS/nixpkgs/nixpkgs-unstable";
     utils.url = "github:numtide/flake-utils";
@@ -174,7 +174,5 @@
     {
       nixpkgs.overlays = [ fenix.overlays.default ];
       devShells.default = import ./shell.nix { inherit pkgs; };
-    }
-  );
-        
+    });
 }

@@ -1,7 +1,7 @@
 use bevy::prelude::*;
 use leafwing_input_manager::prelude::*;
 
-use crate::{input::debug::DebugAction, player::Player};
+use crate::{input::debug::DebugAction, player::Player, state::AppState};
 
 #[cfg(debug_assertions)]
 pub mod debug;
@@ -81,6 +81,6 @@ impl Plugin for CustomInputPlugin {
 
         #[cfg(debug_assertions)]
         app.add_plugins(InputManagerPlugin::<DebugAction>::default())
-            .add_systems(Startup, debug::setup_debug_input_map);
+            .add_systems(OnEnter(AppState::Playing), debug::setup_debug_input_map);
     }
 }

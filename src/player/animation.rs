@@ -1,71 +1,85 @@
-use crate::input::Action;
+use super::state::PlayerState;
 use crate::physics::looking_direction::LookDir;
-use crate::player::config::animation::*;
+use crate::player::state::ChangePlayerState;
 use crate::player::{LookingDirection, Player};
+use crate::state::AppState;
 use bevy::prelude::*;
-use bevy_aseprite_ultra::prelude::*;
-use leafwing_input_manager::prelude::ActionState;
+use bevy_mod_aseprite::{Aseprite, AsepriteAnimation, AsepriteAsset};
 
-pub fn player_animation(
-    player: Single<
-        (
-            &ActionState<Action>,
-            &mut AseAnimation,
-            &mut Sprite,
-            &LookingDirection,
-        ),
-        With<Player>,
-    >,
-) {
-    let (input, mut asesprite, mut sprite, looking_direction) = player.into_inner();
-    let direction = input.axis_pair(&Action::Direction);
+pub mod sprites {
+    use bevy_mod_aseprite::aseprite;
+    aseprite!(pub Player, "reimu.aseprite");
+}
 
+#[derive(Debug, Resource, Deref, DerefMut, Default)]
+pub struct AsepriteHandles(Vec<Handle<AsepriteAsset>>);
+
+fn looking_direction(player: Single<(&mut Sprite, &LookingDirection), With<Player>>) {
+    let (mut sprite, looking_direction) = player.into_inner();
     sprite.flip_x = match looking_direction.0 {
         LookDir::Right => false,
         LookDir::Left => true,
     };
+}
 
-    let animation = match asesprite.animation.tag.clone() {
-        Some(val) => val,
-        None => DEFAULT.to_string(),
-    };
-
-    let new_animation = match direction.x {
-        0. => STAND,
-        _ => WALK,
-    };
-
-    if animation != new_animation {
-        asesprite.animation = Animation::tag(new_animation).with_speed(ANIMATION_SPEED);
+fn player_animation(
+    player: Single<(&PlayerState, &mut Aseprite), With<Player>>,
+    aseprites: Res<Assets<AsepriteAsset>>,
+    mut events: EventReader<ChangePlayerState>,
+) {
+    let (state, mut ase) = player.into_inner();
+    for _ in events.read() {
+        let info = aseprites.get(&ase.asset).unwrap().info();
+        ase.anim = AsepriteAnimation::new(info, state.animation_tag());
     }
 }
 
-pub fn set_player_sprite(
-    player: Single<(&mut AseAnimation, &mut Transform), Added<Player>>,
-    server: Res<AssetServer>,
+fn load_assets(mut ase_handles: ResMut<AsepriteHandles>, server: Res<AssetServer>) {
+    let handle = server.load(sprites::Player::PATH);
+    ase_handles.push(handle);
+}
+
+fn set_player_sprite(
+    player: Single<(&mut Transform, Entity), Added<Player>>,
+    ase_handles: ResMut<AsepriteHandles>,
+    ase_assets: Res<Assets<AsepriteAsset>>,
+    mut cmd: Commands,
 ) {
-    let (mut animation, mut transform) = player.into_inner();
+    let (mut transform, player) = player.into_inner();
 
     // Resize player and their sprite
     transform.scale.y *= 18. / 48.;
 
-    animation.aseprite = server.load("reimu.aseprite");
-    animation.animation = Animation::default().with_tag(DEFAULT);
+    let ase_handle = &ase_handles[0];
+    let ase_asset = ase_assets.get(ase_handle).unwrap();
+    let anim = AsepriteAnimation::new(ase_asset.info(), PlayerState::default().animation_tag());
+    cmd.entity(player).insert((
+        Sprite {
+            image: ase_asset.texture().clone_weak(),
+            texture_atlas: Some(TextureAtlas {
+                index: anim.current_frame(),
+                layout: ase_asset.layout().clone_weak(),
+            }),
+            ..default()
+        },
+        Aseprite {
+            anim,
+            asset: ase_handle.clone_weak(),
+        },
+    ));
 }
-
-// fn events(mut events: EventReader<AnimationEvents>, mut cmd: Commands) {
-//     for event in events.read() {
-//         match event {
-//             AnimationEvents::Finished(entity) => cmd.entity(*entity).despawn(),
-//             AnimationEvents::LoopCycleFinished(_entity) => (),
-//         };
-//     }
-// }
 
 pub struct PlayerAnimationPlugin;
 
 impl Plugin for PlayerAnimationPlugin {
     fn build(&self, app: &mut App) {
-        app.add_systems(Update, (player_animation, set_player_sprite));
+        app.init_resource::<AsepriteHandles>()
+            .add_systems(OnEnter(AppState::LoadingLevelAssets), load_assets)
+            .add_systems(
+                Update,
+                set_player_sprite.run_if(in_state(AppState::Playing)),
+            )
+            .add_systems(Update, player_animation)
+            .add_systems(Update, looking_direction);
     }
 }

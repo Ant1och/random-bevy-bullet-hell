@@ -3,12 +3,13 @@ use bevy::prelude::*;
 use bevy_ecs_ldtk::prelude::*;
 use bevy_rapier2d::prelude::*;
 
-use crate::config::world::WORLD_GRAVITY;
+use crate::{config::world::WORLD_GRAVITY, state::AppState};
 
-pub fn setup(
+fn setup(
     mut commands: Commands,
     asset_server: Res<AssetServer>,
     mut rapier_config: Query<&mut RapierConfiguration>,
+    mut state: ResMut<NextState<AppState>>,
 ) {
     rapier_config.single_mut().unwrap().gravity = Vec2::new(0., WORLD_GRAVITY);
 
@@ -18,6 +19,8 @@ pub fn setup(
         transform: Transform::from_xyz(0., 0., -100.),
         ..Default::default()
     });
+
+    state.set(AppState::LoadingLevelAssets);
 }
 
 pub fn update_level_selection(
